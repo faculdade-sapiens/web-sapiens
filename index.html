@@ -3,15 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conecta+</title>
+  <title>Conecta+ Vitrine</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Cabeçalho -->
   <header class="header">
     <div class="logo">Conecta+</div>
-    <button class="menu-toggle" id="menu-toggle">☰</button>
-    <nav class="nav" id="nav">
+    <nav class="nav">
       <ul>
         <li><a href="#mercado">Mercado</a></li>
         <li><a href="#estoque">Estoque</a></li>
@@ -21,59 +20,61 @@
   </header>
 
   <!-- Vitrine Mercado -->
-  <section id="mercado" class="section">
-    <h2>Mercado</h2>
-    <div class="grid">
-      <div class="card">
-        <img src="produto.jpg" alt="Produto">
-        <h3>Bolo Artesanal</h3>
-        <p>R$ 25,00</p>
-        <button class="btn">Fazer Pedido</button>
+  <main>
+    <section id="mercado" class="section">
+      <h2>Vitrine de Produtos</h2>
+      <div class="grid">
+        <div class="card">
+          <img src="bolo.jpg" alt="Bolo artesanal">
+          <h3>Bolo Artesanal</h3>
+          <p>R$ 25,00</p>
+          <button class="btn">Fazer Pedido</button>
+        </div>
+        <div class="card">
+          <img src="doce.jpg" alt="Doce caseiro">
+          <h3>Doce Caseiro</h3>
+          <p>R$ 10,00</p>
+          <button class="btn">Fazer Pedido</button>
+        </div>
       </div>
-      <div class="card">
-        <img src="produto2.jpg" alt="Produto">
-        <h3>Doce Caseiro</h3>
-        <p>R$ 10,00</p>
-        <button class="btn">Fazer Pedido</button>
+    </section>
+
+    <!-- Estoque -->
+    <section id="estoque" class="section">
+      <h2>Estoque</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Quantidade</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Farinha</td>
+            <td>5 kg</td>
+            <td class="status baixo">Baixo</td>
+          </tr>
+          <tr>
+            <td>Açúcar</td>
+            <td>20 kg</td>
+            <td class="status normal">Normal</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Agenda -->
+    <section id="agenda" class="section">
+      <h2>Agenda</h2>
+      <div class="agenda">
+        <div class="slot">09:00 - Livre</div>
+        <div class="slot ocupado">10:00 - Ocupado</div>
+        <div class="slot">11:00 - Livre</div>
       </div>
-    </div>
-  </section>
-
-  <!-- Estoque -->
-  <section id="estoque" class="section">
-    <h2>Estoque</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Item</th>
-          <th>Quantidade</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Farinha</td>
-          <td>5 kg</td>
-          <td class="status baixo">Baixo</td>
-        </tr>
-        <tr>
-          <td>Açúcar</td>
-          <td>20 kg</td>
-          <td class="status normal">Normal</td>
-        </tr>
-      </tbody>
-    </table>
-  </section>
-
-  <!-- Agenda -->
-  <section id="agenda" class="section">
-    <h2>Agenda</h2>
-    <div class="agenda">
-      <div class="slot">09:00 - Livre</div>
-      <div class="slot ocupado">10:00 - Ocupado</div>
-      <div class="slot">11:00 - Livre</div>
-    </div>
-  </section>
+    </section>
+  </main>
 
   <!-- Rodapé -->
   <footer class="footer">

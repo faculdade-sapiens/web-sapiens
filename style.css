@@ -18,24 +18,12 @@ body {
   font-weight: bold;
 }
 
-.menu-toggle {
-  background: none;
-  border: none;
-  color: #fff;
-  font-size: 1.5rem;
-}
-
-.nav {
-  display: none;
-}
-
 .nav ul {
   list-style: none;
+  display: flex;
+  gap: 1rem;
+  margin: 0;
   padding: 0;
-}
-
-.nav li {
-  margin: 0.5rem 0;
 }
 
 .nav a {
@@ -118,12 +106,6 @@ th, td {
 
 /* Responsivo para telas maiores */
 @media (min-width: 768px) {
-  .nav {
-    display: block;
-  }
-  .menu-toggle {
-    display: none;
-  }
   .grid {
     grid-template-columns: repeat(2, 1fr);
   }
