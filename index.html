@@ -1,86 +1,482 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Conecta+ Vitrine</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#2563EB">
+<meta name="description" content="Conecta+ — Protótipo responsivo do painel de gestão para pequenos negócios">
+<title>Conecta+ — Protótipo</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Cabeçalho -->
-  <header class="header">
-    <div class="logo">Conecta+</div>
-    <nav class="nav">
-      <ul>
-        <li><a href="#mercado">Mercado</a></li>
-        <li><a href="#estoque">Estoque</a></li>
-        <li><a href="#agenda">Agenda</a></li>
-      </ul>
-    </nav>
-  </header>
 
-  <!-- Vitrine Mercado -->
-  <main>
-    <section id="mercado" class="section">
-      <h2>Vitrine de Produtos</h2>
-      <div class="grid">
-        <div class="card">
-          <img src="bolo.jpg" alt="Bolo artesanal">
-          <h3>Bolo Artesanal</h3>
-          <p>R$ 25,00</p>
-          <button class="btn">Fazer Pedido</button>
-        </div>
-        <div class="card">
-          <img src="doce.jpg" alt="Doce caseiro">
-          <h3>Doce Caseiro</h3>
-          <p>R$ 10,00</p>
-          <button class="btn">Fazer Pedido</button>
+<a class="skip-link" href="#main">Pular para o conteúdo</a>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-mark" aria-hidden="true">+</div>
+    <div class="name">conecta<span>+</span> <small>protótipo</small></div>
+  </div>
+
+  <nav class="mode-tabs" aria-label="Modo de visualização">
+    <button class="mtab active" data-mode="login" type="button">Entrar</button>
+    <button class="mtab" data-mode="cadastro" type="button">Criar conta</button>
+    <button class="mtab" data-mode="app" type="button">Painel do Negócio</button>
+    <button class="mtab" data-mode="vitrine" type="button">Vitrine (Cliente)</button>
+  </nav>
+</header>
+
+<main class="layout" id="main">
+
+  <!-- ==================== SIDEBAR / RATIONALE ==================== -->
+  <aside class="intro">
+    <h1>Do caderno pra tela, sem perder o jeito simples.</h1>
+    <p>Protótipo navegável do Conecta+, com a identidade visual oficial e decisões de ergonomia aplicadas a cada tela. Use as abas acima para trocar de contexto.</p>
+
+    <details class="principles" id="panel-login" open>
+      <summary class="principles-summary">Sobre esta tela · Login <span class="chev">▾</span></summary>
+      <div class="principles-body">
+        <ul>
+          <li><strong>Prevenção de erros</strong>Campos com rótulo fixo evitam que o usuário esqueça o que deveria digitar. <code>Heurística Nielsen #5</code></li>
+          <li><strong>Reconhecimento, não memorização</strong>"Esqueci minha senha" sempre visível.</li>
+          <li><strong>Consistência</strong>Mesmo botão azul primário em todo o app.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="principles" id="panel-cadastro">
+      <summary class="principles-summary">Sobre esta tela · Cadastro <span class="chev">▾</span></summary>
+      <div class="principles-body">
+        <ul>
+          <li><strong>Campo opcional sinalizado</strong>O CNPJ traz uma etiqueta "opcional" clara. <code>RF02A</code></li>
+          <li><strong>Validação no momento certo</strong>Erros aparecem perto do campo.</li>
+          <li><strong>Carga cognitiva mínima</strong>Só os campos essenciais nesta etapa. <code>DCU</code></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="principles" id="panel-app">
+      <summary class="principles-summary">Sobre esta tela · Painel do Negócio <span class="chev">▾</span></summary>
+      <div class="principles-body">
+        <ul>
+          <li><strong>Navegação adaptável</strong>Sidebar no desktop, bottom nav no mobile. <code>RNF01</code></li>
+          <li><strong>Permissões refletidas na UI</strong>Funcionário não vê ações de Gerente. <code>RF11 RNF08</code></li>
+          <li><strong>Visibilidade do status</strong>Estoque baixo e pedidos pendentes em destaque. <code>Heurística #1</code></li>
+        </ul>
+      </div>
+    </details>
+
+    <details class="principles" id="panel-vitrine">
+      <summary class="principles-summary">Sobre esta tela · Vitrine do Cliente <span class="chev">▾</span></summary>
+      <div class="principles-body">
+        <ul>
+          <li><strong>Sem exigir login</strong>O cliente compra e agenda sem fricção. <code>RF16 RF34</code></li>
+          <li><strong>Affordance clara</strong>Botões +/− e horários em chip.</li>
+          <li><strong>Feedback contínuo</strong>Barra inferior com total em tempo real.</li>
+          <li><strong>Restrição preventiva</strong>Horários ocupados riscados. <code>RF35</code></li>
+        </ul>
+      </div>
+    </details>
+  </aside>
+
+  <!-- ==================== ÁREA PRINCIPAL ==================== -->
+  <section class="stage" id="stage">
+
+    <!-- ============ LOGIN ============ -->
+    <div class="mode-screen is-visible" id="mode-login">
+      <div class="auth-shell">
+        <div class="auth-card">
+          <div class="auth-logo" aria-hidden="true">+</div>
+          <h2 class="auth-title">Bem-vindo de volta</h2>
+          <p class="auth-sub">Entre para gerenciar seu negócio</p>
+
+          <div class="field">
+            <label for="login-email">E-mail</label>
+            <input id="login-email" type="email" placeholder="voce@seunegocio.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="login-senha">Senha</label>
+            <input id="login-senha" type="password" placeholder="••••••••" autocomplete="current-password">
+          </div>
+          <button class="btn-primary" onclick="setMode('app')" type="button">Entrar</button>
+          <p class="forgot">Esqueci minha senha</p>
+          <p class="auth-switch">Não tem conta? <a onclick="setMode('cadastro')" role="button" tabindex="0">Criar conta</a></p>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Estoque -->
-    <section id="estoque" class="section">
-      <h2>Estoque</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Item</th>
-            <th>Quantidade</th>
-            <th>Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Farinha</td>
-            <td>5 kg</td>
-            <td class="status baixo">Baixo</td>
-          </tr>
-          <tr>
-            <td>Açúcar</td>
-            <td>20 kg</td>
-            <td class="status normal">Normal</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
+    <!-- ============ CADASTRO ============ -->
+    <div class="mode-screen" id="mode-cadastro">
+      <div class="auth-shell">
+        <div class="auth-card">
+          <h2 class="auth-title">Criar sua conta</h2>
+          <p class="auth-sub">Leva menos de 2 minutos</p>
 
-    <!-- Agenda -->
-    <section id="agenda" class="section">
-      <h2>Agenda</h2>
-      <div class="agenda">
-        <div class="slot">09:00 - Livre</div>
-        <div class="slot ocupado">10:00 - Ocupado</div>
-        <div class="slot">11:00 - Livre</div>
+          <div class="field">
+            <label for="cad-negocio">Nome do negócio</label>
+            <input id="cad-negocio" type="text" placeholder="Ex: Doces da Marli">
+          </div>
+          <div class="field">
+            <label for="cad-nome">Seu nome completo</label>
+            <input id="cad-nome" type="text" placeholder="Nome e sobrenome" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="cad-email">E-mail</label>
+            <input id="cad-email" type="email" placeholder="voce@seunegocio.com" autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="cad-senha">Senha</label>
+            <input id="cad-senha" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label for="cnpj-field">CNPJ <span class="opt-badge">Opcional</span></label>
+            <input type="text" id="cnpj-field" placeholder="00.000.000/0000-00" maxlength="18" inputmode="text">
+            <p class="field-hint">Negócio informal também pode usar o Conecta+ — preencha depois, se quiser.</p>
+          </div>
+          <button class="btn-primary" onclick="setMode('app')" type="button">Criar conta</button>
+          <p class="auth-switch">Já tem conta? <a onclick="setMode('login')" role="button" tabindex="0">Entrar</a></p>
+        </div>
       </div>
-    </section>
-  </main>
+    </div>
 
-  <!-- Rodapé -->
-  <footer class="footer">
-    <p>© 2026 Conecta+ — Fortalecendo seu negócio</p>
-  </footer>
+    <!-- ============ APP / PAINEL ============ -->
+    <div class="mode-screen" id="mode-app">
+      <div class="app-shell">
 
-  <script src="script.js"></script>
+        <!-- Sidebar (desktop) -->
+        <aside class="app-sidebar" aria-label="Navegação do painel">
+          <div class="sidebar-brand">
+            <div class="brand-mark" aria-hidden="true">+</div>
+            <div>
+              <div class="biz-name">Doces da Marli</div>
+              <div class="biz-role" id="role-label">Gerente</div>
+            </div>
+          </div>
+
+          <nav class="sidebar-nav">
+            <button class="nav-item active" data-screen="inicio" type="button"><span class="ic">🏠</span><span>Início</span></button>
+            <button class="nav-item" data-screen="mercado" type="button"><span class="ic">🛍️</span><span>Mercado</span></button>
+            <button class="nav-item" data-screen="estoque" type="button"><span class="ic">📦</span><span>Estoque</span></button>
+            <button class="nav-item" data-screen="agenda" type="button"><span class="ic">📅</span><span>Agenda</span></button>
+            <button class="nav-item" data-screen="perfil" type="button"><span class="ic">👤</span><span>Perfil</span></button>
+          </nav>
+
+          <div class="sidebar-role">
+            <div class="role-switch" id="role-switch-wrap">
+              <button class="active" data-role="gerente" type="button">Gerente</button>
+              <button data-role="funcionario" type="button">Funcionário</button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Conteúdo principal -->
+        <div class="app-main">
+
+          <!-- App header (visível no mobile) -->
+          <header class="app-header">
+            <div class="biz">
+              <div class="biz-logo" aria-hidden="true">+</div>
+              <div>
+                <div class="biz-name">Doces da Marli</div>
+                <div class="biz-role" id="role-label-mobile">Gerente</div>
+              </div>
+            </div>
+            <div class="role-switch role-switch-mobile" id="role-switch-wrap-mobile">
+              <button class="active" data-role="gerente" type="button">Gerente</button>
+              <button data-role="funcionario" type="button">Funcionário</button>
+            </div>
+          </header>
+
+          <!-- INÍCIO -->
+          <div class="screen active" id="screen-inicio">
+            <div class="screen-head">
+              <h2 class="screen-title">Bom dia, Marli 👋</h2>
+              <p class="screen-sub">Terça-feira, 25 de agosto</p>
+            </div>
+
+            <div class="stat-grid">
+              <div class="stat-card"><div class="num">6</div><div class="label">Pedidos hoje</div></div>
+              <div class="stat-card alert"><div class="num">3</div><div class="label">Itens com estoque baixo</div></div>
+              <div class="stat-card ok"><div class="num">R$ 184</div><div class="label">Vendido hoje</div></div>
+              <div class="stat-card"><div class="num">14h</div><div class="label">Próximo agendamento</div></div>
+            </div>
+
+            <div class="panel-grid">
+              <div class="panel">
+                <div class="section-label">Ações rápidas</div>
+                <div class="action-row">
+                  <button class="action-btn" onclick="goScreen('mercado')" type="button">+ Novo item</button>
+                  <button class="action-btn secondary" onclick="goScreen('agenda')" type="button">Ver agenda</button>
+                </div>
+              </div>
+
+              <div class="panel">
+                <div class="section-label">Pedidos recentes</div>
+                <div class="list-item">
+                  <div class="item-thumb">🍫</div>
+                  <div class="item-info"><div class="item-name">Ana Paula</div><div class="item-meta">2x Brigadeiro gourmet · há 12 min</div></div>
+                  <span class="badge warning">Recebido</span>
+                </div>
+                <div class="list-item">
+                  <div class="item-thumb">🎂</div>
+                  <div class="item-info"><div class="item-name">João Vitor</div><div class="item-meta">Bolo de fubá · há 40 min</div></div>
+                  <span class="badge primary">Concluído</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MERCADO -->
+          <div class="screen" id="screen-mercado">
+            <div class="screen-head">
+              <h2 class="screen-title">Mercado</h2>
+              <p class="screen-sub">Itens visíveis na sua vitrine pública</p>
+            </div>
+
+            <div class="chip-row">
+              <span class="chip active">Todos</span><span class="chip">Doces</span><span class="chip">Salgados</span><span class="chip">Encomendas</span>
+            </div>
+
+            <div class="list-card">
+              <div class="list-item">
+                <div class="item-thumb">🍫</div>
+                <div class="item-info"><div class="item-name">Brigadeiro gourmet</div><div class="item-meta">Ativo na vitrine</div></div>
+                <span class="item-price">R$ 4,50</span>
+                <button class="switch on" type="button" role="switch" aria-checked="true" aria-label="Ativar Brigadeiro gourmet"></button>
+              </div>
+              <div class="list-item">
+                <div class="item-thumb">🎂</div>
+                <div class="item-info"><div class="item-name">Bolo de fubá</div><div class="item-meta">Ativo na vitrine</div></div>
+                <span class="item-price">R$ 28,00</span>
+                <button class="switch on" type="button" role="switch" aria-checked="true" aria-label="Ativar Bolo de fubá"></button>
+              </div>
+              <div class="list-item">
+                <div class="item-thumb">🧁</div>
+                <div class="item-info"><div class="item-name">Cupcake de morango</div><div class="item-meta">Pausado — sem estoque</div></div>
+                <span class="item-price">R$ 7,00</span>
+                <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Ativar Cupcake de morango"></button>
+              </div>
+            </div>
+
+            <div class="locked-note" data-gerente-only>🔒 Excluir um item permanentemente é uma ação só do Gerente.</div>
+          </div>
+
+          <!-- ESTOQUE -->
+          <div class="screen" id="screen-estoque">
+            <div class="screen-head">
+              <h2 class="screen-title">Estoque</h2>
+              <p class="screen-sub">3 itens abaixo do mínimo</p>
+            </div>
+
+            <div class="chip-row">
+              <span class="chip active">Todos</span><span class="chip">Normal</span><span class="chip">Baixo</span><span class="chip">Esgotado</span>
+            </div>
+
+            <div class="list-card">
+              <div class="list-item" style="align-items:flex-start;">
+                <div class="item-thumb">🥚</div>
+                <div class="item-info">
+                  <div class="item-name">Ovos (dúzia)</div>
+                  <div class="item-meta">2 restantes · mínimo 8</div>
+                  <div class="qty-bar-wrap"><div class="qty-bar low" style="width:15%;"></div></div>
+                </div>
+                <span class="badge danger">Baixo</span>
+              </div>
+              <div class="list-item" style="align-items:flex-start;">
+                <div class="item-thumb">🌾</div>
+                <div class="item-info">
+                  <div class="item-name">Farinha de trigo (kg)</div>
+                  <div class="item-meta">9kg restantes · mínimo 4kg</div>
+                  <div class="qty-bar-wrap"><div class="qty-bar" style="width:80%;"></div></div>
+                </div>
+                <span class="badge primary">Normal</span>
+              </div>
+            </div>
+
+            <div class="locked-note" data-gerente-only>🔒 Funcionários registram entrada e saída, mas não excluem itens do estoque.</div>
+          </div>
+
+          <!-- AGENDA -->
+          <div class="screen" id="screen-agenda">
+            <div class="screen-head">
+              <h2 class="screen-title">Agenda</h2>
+              <p class="screen-sub">Terça-feira, 25 de agosto</p>
+            </div>
+
+            <div class="list-card">
+              <div class="agenda-slot">
+                <div class="agenda-time">09:00</div>
+                <div class="agenda-info"><div class="agenda-client">Rita Souza</div><div class="agenda-service">Retirada — bolo de aniversário</div></div>
+                <span class="badge primary">Confirmado</span>
+              </div>
+              <div class="agenda-slot">
+                <div class="agenda-time">11:00</div>
+                <div class="agenda-info empty-slot">Horário livre</div>
+              </div>
+              <div class="agenda-slot">
+                <div class="agenda-time">14:00</div>
+                <div class="agenda-info"><div class="agenda-client">Carlos Eduardo</div><div class="agenda-service">Encomenda — 30 brigadeiros</div></div>
+                <span class="badge warning">Pendente</span>
+              </div>
+            </div>
+
+            <div class="section-label" data-gerente-only>Configuração</div>
+            <div class="action-row" data-gerente-only>
+              <button class="action-btn secondary" type="button">Configurar horários de atendimento</button>
+            </div>
+          </div>
+
+          <!-- PERFIL -->
+          <div class="screen" id="screen-perfil">
+            <div class="screen-head">
+              <h2 class="screen-title">Perfil do negócio</h2>
+              <p class="screen-sub">Dados da conta</p>
+            </div>
+
+            <div class="list-card">
+              <div class="profile-row"><span class="k">Nome</span><span class="v">Doces da Marli</span></div>
+              <div class="profile-row"><span class="k">Telefone</span><span class="v">(69) 99999-0000</span></div>
+              <div class="profile-row"><span class="k">CNPJ</span><span class="v">Não informado</span></div>
+              <div class="profile-row" data-gerente-only><span class="k">Editar dados</span><span class="v">›</span></div>
+            </div>
+
+            <div class="section-label" data-gerente-only>Equipe</div>
+            <div class="list-card" data-gerente-only>
+              <div class="team-row">
+                <div class="team-avatar">MA</div>
+                <div class="team-info"><div class="team-name">Marli Alves</div><div class="team-role">Gerente</div></div>
+              </div>
+              <div class="team-row">
+                <div class="team-avatar">JS</div>
+                <div class="team-info"><div class="team-name">João Silva</div><div class="team-role">Funcionário</div></div>
+                <span class="badge neutral">Ativo</span>
+              </div>
+            </div>
+
+            <div class="action-row" style="margin-top:14px;" data-gerente-only>
+              <button class="action-btn secondary" type="button">+ Adicionar funcionário</button>
+            </div>
+
+            <div class="locked-note" data-funcionario-only style="display:none;">🔒 Somente o Gerente edita dados do negócio e gerencia a equipe.</div>
+          </div>
+
+          <button class="fab" id="fab-btn" type="button" aria-label="Novo item de venda">+</button>
+
+          <!-- Bottom nav (mobile) -->
+          <nav class="bottom-nav" aria-label="Navegação do painel (mobile)">
+            <button class="nav-btn active" data-screen="inicio" type="button"><span class="ic">🏠</span><span class="lb">Início</span></button>
+            <button class="nav-btn" data-screen="mercado" type="button"><span class="ic">🛍️</span><span class="lb">Mercado</span></button>
+            <button class="nav-btn" data-screen="estoque" type="button"><span class="ic">📦</span><span class="lb">Estoque</span></button>
+            <button class="nav-btn" data-screen="agenda" type="button"><span class="ic">📅</span><span class="lb">Agenda</span></button>
+            <button class="nav-btn" data-screen="perfil" type="button"><span class="ic">👤</span><span class="lb">Perfil</span></button>
+          </nav>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal-overlay" id="modal-overlay">
+          <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <h3 id="modal-title">Novo item de venda</h3>
+            <div class="field"><label for="novo-item-nome">Nome</label><input id="novo-item-nome" type="text" placeholder="Ex: Brigadeiro gourmet"></div>
+            <div class="field"><label for="novo-item-preco">Preço</label><input id="novo-item-preco" type="text" placeholder="R$ 0,00" inputmode="decimal"></div>
+            <div class="modal-actions">
+              <button class="action-btn secondary" onclick="closeModal()" type="button">Cancelar</button>
+              <button class="action-btn" onclick="closeModal()" type="button">Salvar item</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ VITRINE ============ -->
+    <div class="mode-screen" id="mode-vitrine">
+      <div class="vitrine-shell">
+        <header class="vitrine-header">
+          <div class="vitrine-header-inner">
+            <div class="logo-wrap" aria-hidden="true">+</div>
+            <div>
+              <h2>Doces da Marli</h2>
+              <div class="sub">Bolos e doces artesanais · Porto Velho, RO</div>
+              <span class="badge online">● Aberto agora</span>
+            </div>
+          </div>
+
+          <div class="vitrine-tabs">
+            <button class="vtab active" data-vtab="cardapio" type="button">Cardápio</button>
+            <button class="vtab" data-vtab="agendar" type="button">Agendar retirada</button>
+          </div>
+        </header>
+
+        <div class="vitrine-body" id="vitrine-cardapio">
+          <div class="products-grid">
+            <div class="prod-card">
+              <div class="prod-thumb">🍫</div>
+              <div class="prod-info">
+                <div class="prod-name">Brigadeiro gourmet</div>
+                <div class="prod-desc">Chocolate belga, granulado crocante</div>
+                <div class="prod-price">R$ 4,50</div>
+              </div>
+              <div class="qty-stepper">
+                <button onclick="changeQty(this,-1)" type="button" aria-label="Diminuir">−</button>
+                <span class="qty-val">0</span>
+                <button onclick="changeQty(this,1)" type="button" aria-label="Aumentar">+</button>
+              </div>
+            </div>
+
+            <div class="prod-card">
+              <div class="prod-thumb">🎂</div>
+              <div class="prod-info">
+                <div class="prod-name">Bolo de fubá</div>
+                <div class="prod-desc">Receita da vovó, fatia generosa</div>
+                <div class="prod-price">R$ 28,00</div>
+              </div>
+              <div class="qty-stepper">
+                <button onclick="changeQty(this,-1)" type="button" aria-label="Diminuir">−</button>
+                <span class="qty-val">0</span>
+                <button onclick="changeQty(this,1)" type="button" aria-label="Aumentar">+</button>
+              </div>
+            </div>
+
+            <div class="prod-card">
+              <div class="prod-thumb">🧁</div>
+              <div class="prod-info">
+                <div class="prod-name">Cupcake de morango</div>
+                <div class="prod-desc danger">Sem estoque no momento</div>
+                <div class="prod-price">R$ 7,00</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="vitrine-body" id="vitrine-agendar" style="display:none;">
+          <p class="section-label" style="margin-top:0;">Horários disponíveis hoje</p>
+          <div class="slot-grid">
+            <div class="slot-chip disabled">09:00</div>
+            <div class="slot-chip" onclick="selectSlot(this)" role="button" tabindex="0">10:00</div>
+            <div class="slot-chip" onclick="selectSlot(this)" role="button" tabindex="0">11:00</div>
+            <div class="slot-chip disabled">14:00</div>
+            <div class="slot-chip" onclick="selectSlot(this)" role="button" tabindex="0">15:00</div>
+            <div class="slot-chip" onclick="selectSlot(this)" role="button" tabindex="0">16:00</div>
+          </div>
+          <div class="section-label">Seus dados</div>
+          <div class="field"><label for="ag-nome">Nome</label><input id="ag-nome" type="text" placeholder="Seu nome"></div>
+          <div class="field"><label for="ag-tel">Telefone</label><input id="ag-tel" type="text" placeholder="(69) 99999-0000" inputmode="tel"></div>
+          <button class="btn-primary" type="button">Confirmar agendamento</button>
+        </div>
+
+        <div class="cart-bar" id="cart-bar" role="status" aria-live="polite" style="display:none;">
+          <span id="cart-info">1 item · R$ 4,50</span>
+          <span class="cta">Ver pedido ›</span>
+        </div>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<script src="script.js" defer></script>
 </body>
 </html>
