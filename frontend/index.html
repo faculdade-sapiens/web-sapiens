@@ -10,7 +10,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
@@ -23,10 +23,10 @@
   </div>
 
   <nav class="mode-tabs" aria-label="Modo de visualização">
-    <button class="mtab active" data-mode="login" type="button">Entrar</button>
-    <button class="mtab" data-mode="cadastro" type="button">Criar conta</button>
-    <button class="mtab" data-mode="app" type="button">Painel do Negócio</button>
-    <button class="mtab" data-mode="vitrine" type="button">Vitrine (Cliente)</button>
+    <button class="mtab active" data-mode="login" type="button"><span class="tab-full">Entrar</span><span class="tab-short">Entrar</span></button>
+    <button class="mtab" data-mode="cadastro" type="button"><span class="tab-full">Criar conta</span><span class="tab-short">Cadastro</span></button>
+    <button class="mtab" data-mode="app" type="button"><span class="tab-full">Painel do Negócio</span><span class="tab-short">Painel</span></button>
+    <button class="mtab" data-mode="vitrine" type="button"><span class="tab-full">Vitrine (Cliente)</span><span class="tab-short">Vitrine</span></button>
   </nav>
 </header>
 
@@ -103,7 +103,8 @@
             <input id="login-senha" type="password" placeholder="••••••••" autocomplete="current-password">
           </div>
           <button class="btn-primary" onclick="setMode('app')" type="button">Entrar</button>
-          <p class="forgot">Esqueci minha senha</p>
+          <button class="forgot" id="forgot-btn" type="button">Esqueci minha senha</button>
+          <p class="forgot-msg" id="forgot-msg" hidden>Link de redefinição enviado para o seu e-mail. Válido por 30 minutos.</p>
           <p class="auth-switch">Não tem conta? <a onclick="setMode('cadastro')" role="button" tabindex="0">Criar conta</a></p>
         </div>
       </div>
@@ -162,6 +163,7 @@
             <button class="nav-item" data-screen="mercado" type="button"><span class="ic">🛍️</span><span>Mercado</span></button>
             <button class="nav-item" data-screen="estoque" type="button"><span class="ic">📦</span><span>Estoque</span></button>
             <button class="nav-item" data-screen="agenda" type="button"><span class="ic">📅</span><span>Agenda</span></button>
+            <button class="nav-item" data-screen="relatorios" type="button" data-gerente-only><span class="ic">📊</span><span>Relatórios</span></button>
             <button class="nav-item" data-screen="perfil" type="button"><span class="ic">👤</span><span>Perfil</span></button>
           </nav>
 
@@ -170,6 +172,7 @@
               <button class="active" data-role="gerente" type="button">Gerente</button>
               <button data-role="funcionario" type="button">Funcionário</button>
             </div>
+            <button class="logout-btn" id="logout-btn-desktop" type="button">⏻ Sair</button>
           </div>
         </aside>
 
@@ -185,9 +188,12 @@
                 <div class="biz-role" id="role-label-mobile">Gerente</div>
               </div>
             </div>
-            <div class="role-switch role-switch-mobile" id="role-switch-wrap-mobile">
-              <button class="active" data-role="gerente" type="button">Gerente</button>
-              <button data-role="funcionario" type="button">Funcionário</button>
+            <div class="app-header-row">
+              <div class="role-switch role-switch-mobile" id="role-switch-wrap-mobile">
+                <button class="active" data-role="gerente" type="button">Gerente</button>
+                <button data-role="funcionario" type="button">Funcionário</button>
+              </div>
+              <button class="logout-btn-mobile" id="logout-btn-mobile" type="button" aria-label="Sair" title="Sair">⏻</button>
             </div>
           </header>
 
@@ -219,12 +225,12 @@
                 <div class="list-item">
                   <div class="item-thumb">🍫</div>
                   <div class="item-info"><div class="item-name">Ana Paula</div><div class="item-meta">2x Brigadeiro gourmet · há 12 min</div></div>
-                  <span class="badge warning">Recebido</span>
+                  <button class="badge warning status-cycle" type="button" title="Clique para alterar o status" data-states="Recebido|Em preparo|Concluído|Cancelado" data-classes="warning|neutral|primary|danger">Recebido</button>
                 </div>
                 <div class="list-item">
                   <div class="item-thumb">🎂</div>
                   <div class="item-info"><div class="item-name">João Vitor</div><div class="item-meta">Bolo de fubá · há 40 min</div></div>
-                  <span class="badge primary">Concluído</span>
+                  <button class="badge primary status-cycle" type="button" title="Clique para alterar o status" data-states="Recebido|Em preparo|Concluído|Cancelado" data-classes="warning|neutral|primary|danger">Concluído</button>
                 </div>
               </div>
             </div>
@@ -247,22 +253,34 @@
                 <div class="item-info"><div class="item-name">Brigadeiro gourmet</div><div class="item-meta">Ativo na vitrine</div></div>
                 <span class="item-price">R$ 4,50</span>
                 <button class="switch on" type="button" role="switch" aria-checked="true" aria-label="Ativar Brigadeiro gourmet"></button>
+                <div class="item-actions">
+                  <button class="icon-btn" type="button" aria-label="Editar Brigadeiro gourmet" onclick="openModal('modal-overlay','Editar Brigadeiro gourmet')">✎</button>
+                  <button class="icon-btn danger" type="button" aria-label="Excluir Brigadeiro gourmet" onclick="deleteListItem(this)">🗑</button>
+                </div>
               </div>
               <div class="list-item">
                 <div class="item-thumb">🎂</div>
                 <div class="item-info"><div class="item-name">Bolo de fubá</div><div class="item-meta">Ativo na vitrine</div></div>
                 <span class="item-price">R$ 28,00</span>
                 <button class="switch on" type="button" role="switch" aria-checked="true" aria-label="Ativar Bolo de fubá"></button>
+                <div class="item-actions">
+                  <button class="icon-btn" type="button" aria-label="Editar Bolo de fubá" onclick="openModal('modal-overlay','Editar Bolo de fubá')">✎</button>
+                  <button class="icon-btn danger" type="button" aria-label="Excluir Bolo de fubá" onclick="deleteListItem(this)">🗑</button>
+                </div>
               </div>
               <div class="list-item">
                 <div class="item-thumb">🧁</div>
                 <div class="item-info"><div class="item-name">Cupcake de morango</div><div class="item-meta">Pausado — sem estoque</div></div>
                 <span class="item-price">R$ 7,00</span>
                 <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Ativar Cupcake de morango"></button>
+                <div class="item-actions">
+                  <button class="icon-btn" type="button" aria-label="Editar Cupcake de morango" onclick="openModal('modal-overlay','Editar Cupcake de morango')">✎</button>
+                  <button class="icon-btn danger" type="button" aria-label="Excluir Cupcake de morango" onclick="deleteListItem(this)">🗑</button>
+                </div>
               </div>
             </div>
 
-            <div class="locked-note" data-gerente-only>🔒 Excluir um item permanentemente é uma ação só do Gerente.</div>
+            <div class="locked-note">🔒 Um item sem estoque some automaticamente da vitrine pública, mesmo continuando cadastrado aqui.</div>
           </div>
 
           <!-- ESTOQUE -->
@@ -272,6 +290,19 @@
               <p class="screen-sub">3 itens abaixo do mínimo</p>
             </div>
 
+            <div class="action-row" style="margin-bottom:16px;">
+              <button class="action-btn" type="button" onclick="openModal('modal-estoque-novo')">+ Novo item de estoque</button>
+            </div>
+
+            <div class="field" style="margin-bottom:14px;">
+              <input type="text" placeholder="Buscar por nome..." aria-label="Buscar item de estoque">
+            </div>
+
+            <span class="filter-label">Categoria</span>
+            <div class="chip-row">
+              <span class="chip active">Todos</span><span class="chip">Ingredientes</span><span class="chip">Embalagens</span>
+            </div>
+            <span class="filter-label">Status</span>
             <div class="chip-row">
               <span class="chip active">Todos</span><span class="chip">Normal</span><span class="chip">Baixo</span><span class="chip">Esgotado</span>
             </div>
@@ -283,8 +314,21 @@
                   <div class="item-name">Ovos (dúzia)</div>
                   <div class="item-meta">2 restantes · mínimo 8</div>
                   <div class="qty-bar-wrap"><div class="qty-bar low" style="width:15%;"></div></div>
+                  <div class="stock-actions">
+                    <button class="mini-btn" type="button" onclick="openModal('modal-mov-estoque','Registrar entrada — Ovos (dúzia)')">+ Entrada</button>
+                    <button class="mini-btn" type="button" onclick="openModal('modal-mov-estoque','Registrar saída — Ovos (dúzia)')">− Saída</button>
+                    <button class="mini-btn" type="button" onclick="toggleHistory(this)">Histórico</button>
+                  </div>
+                  <div class="stock-history" hidden>
+                    <div class="history-row"><span>25/08 · Saída de 2 un.</span><span class="muted">Marli Alves</span></div>
+                    <div class="history-row"><span>18/08 · Entrada de 12 un.</span><span class="muted">João Silva</span></div>
+                  </div>
                 </div>
                 <span class="badge danger">Baixo</span>
+                <div class="item-actions">
+                  <button class="icon-btn" type="button" aria-label="Editar Ovos (dúzia)" onclick="openModal('modal-estoque-novo','Editar Ovos (dúzia)')">✎</button>
+                  <button class="icon-btn danger" type="button" aria-label="Excluir Ovos (dúzia)" data-gerente-only onclick="deleteListItem(this)">🗑</button>
+                </div>
               </div>
               <div class="list-item" style="align-items:flex-start;">
                 <div class="item-thumb">🌾</div>
@@ -292,12 +336,24 @@
                   <div class="item-name">Farinha de trigo (kg)</div>
                   <div class="item-meta">9kg restantes · mínimo 4kg</div>
                   <div class="qty-bar-wrap"><div class="qty-bar" style="width:80%;"></div></div>
+                  <div class="stock-actions">
+                    <button class="mini-btn" type="button" onclick="openModal('modal-mov-estoque','Registrar entrada — Farinha de trigo (kg)')">+ Entrada</button>
+                    <button class="mini-btn" type="button" onclick="openModal('modal-mov-estoque','Registrar saída — Farinha de trigo (kg)')">− Saída</button>
+                    <button class="mini-btn" type="button" onclick="toggleHistory(this)">Histórico</button>
+                  </div>
+                  <div class="stock-history" hidden>
+                    <div class="history-row"><span>23/08 · Entrada de 10kg</span><span class="muted">João Silva</span></div>
+                  </div>
                 </div>
                 <span class="badge primary">Normal</span>
+                <div class="item-actions">
+                  <button class="icon-btn" type="button" aria-label="Editar Farinha de trigo (kg)" onclick="openModal('modal-estoque-novo','Editar Farinha de trigo (kg)')">✎</button>
+                  <button class="icon-btn danger" type="button" aria-label="Excluir Farinha de trigo (kg)" data-gerente-only onclick="deleteListItem(this)">🗑</button>
+                </div>
               </div>
             </div>
 
-            <div class="locked-note" data-gerente-only>🔒 Funcionários registram entrada e saída, mas não excluem itens do estoque.</div>
+            <div class="locked-note" data-funcionario-only style="display:none;">🔒 Funcionários registram entrada e saída, mas não excluem itens do estoque.</div>
           </div>
 
           <!-- AGENDA -->
@@ -307,11 +363,16 @@
               <p class="screen-sub">Terça-feira, 25 de agosto</p>
             </div>
 
-            <div class="list-card">
+            <div class="role-switch agenda-view-switch" id="agenda-view-switch">
+              <button class="active" data-agenda-view="diario" type="button">Diário</button>
+              <button data-agenda-view="semanal" type="button">Semanal</button>
+            </div>
+
+            <div class="list-card" id="agenda-diario">
               <div class="agenda-slot">
                 <div class="agenda-time">09:00</div>
                 <div class="agenda-info"><div class="agenda-client">Rita Souza</div><div class="agenda-service">Retirada — bolo de aniversário</div></div>
-                <span class="badge primary">Confirmado</span>
+                <button class="badge primary status-cycle" type="button" title="Clique para alterar o status" data-states="Pendente|Confirmado|Remarcado|Cancelado" data-classes="warning|primary|neutral|danger">Confirmado</button>
               </div>
               <div class="agenda-slot">
                 <div class="agenda-time">11:00</div>
@@ -320,8 +381,18 @@
               <div class="agenda-slot">
                 <div class="agenda-time">14:00</div>
                 <div class="agenda-info"><div class="agenda-client">Carlos Eduardo</div><div class="agenda-service">Encomenda — 30 brigadeiros</div></div>
-                <span class="badge warning">Pendente</span>
+                <button class="badge warning status-cycle" type="button" title="Clique para alterar o status" data-states="Pendente|Confirmado|Remarcado|Cancelado" data-classes="warning|primary|neutral|danger">Pendente</button>
               </div>
+            </div>
+
+            <div class="week-grid" id="agenda-semanal" hidden>
+              <div class="week-day"><div class="week-day-label">Seg 24</div><div class="week-day-count">2 agend.</div></div>
+              <div class="week-day active"><div class="week-day-label">Ter 25</div><div class="week-day-count">3 agend.</div></div>
+              <div class="week-day"><div class="week-day-label">Qua 26</div><div class="week-day-count">1 agend.</div></div>
+              <div class="week-day"><div class="week-day-label">Qui 27</div><div class="week-day-count">Livre</div></div>
+              <div class="week-day"><div class="week-day-label">Sex 28</div><div class="week-day-count">4 agend.</div></div>
+              <div class="week-day"><div class="week-day-label">Sáb 29</div><div class="week-day-count">2 agend.</div></div>
+              <div class="week-day"><div class="week-day-label">Dom 30</div><div class="week-day-count">Fechado</div></div>
             </div>
 
             <div class="section-label" data-gerente-only>Configuração</div>
@@ -353,7 +424,7 @@
               <div class="team-row">
                 <div class="team-avatar">JS</div>
                 <div class="team-info"><div class="team-name">João Silva</div><div class="team-role">Funcionário</div></div>
-                <span class="badge neutral">Ativo</span>
+                <button class="badge neutral status-revoke" type="button" title="Clique para revogar ou reativar o acesso" data-active-label="Ativo" data-revoked-label="Revogado">Ativo</button>
               </div>
             </div>
 
@@ -364,6 +435,54 @@
             <div class="locked-note" data-funcionario-only style="display:none;">🔒 Somente o Gerente edita dados do negócio e gerencia a equipe.</div>
           </div>
 
+          <!-- RELATÓRIOS -->
+          <div class="screen" id="screen-relatorios" data-gerente-only>
+            <div class="screen-head">
+              <h2 class="screen-title">Relatórios</h2>
+              <p class="screen-sub">Consulte e exporte os dados do seu negócio</p>
+            </div>
+
+            <div class="report-filters">
+              <div class="field compact"><label for="rel-de">De</label><input id="rel-de" type="date" value="2026-08-01"></div>
+              <div class="field compact"><label for="rel-ate">Até</label><input id="rel-ate" type="date" value="2026-08-25"></div>
+            </div>
+
+            <div class="chip-row" id="report-tabs">
+              <span class="chip active" data-report="pedidos">Pedidos</span>
+              <span class="chip" data-report="estoque">Movimentações de estoque</span>
+              <span class="chip" data-report="agenda">Agendamentos</span>
+            </div>
+
+            <div class="report-table-wrap" id="report-print-area">
+              <table class="report-table" id="report-pedidos">
+                <thead><tr><th>Data</th><th>Cliente</th><th>Item</th><th>Status</th><th>Valor</th></tr></thead>
+                <tbody>
+                  <tr><td data-label="Data">25/08</td><td data-label="Cliente">Ana Paula</td><td data-label="Item">2x Brigadeiro gourmet</td><td data-label="Status"><span class="badge warning">Recebido</span></td><td data-label="Valor">R$ 9,00</td></tr>
+                  <tr><td data-label="Data">25/08</td><td data-label="Cliente">João Vitor</td><td data-label="Item">Bolo de fubá</td><td data-label="Status"><span class="badge primary">Concluído</span></td><td data-label="Valor">R$ 28,00</td></tr>
+                  <tr><td data-label="Data">24/08</td><td data-label="Cliente">Rita Souza</td><td data-label="Item">1x Cupcake de morango</td><td data-label="Status"><span class="badge danger">Cancelado</span></td><td data-label="Valor">R$ 7,00</td></tr>
+                </tbody>
+              </table>
+              <table class="report-table" id="report-estoque" hidden>
+                <thead><tr><th>Data</th><th>Item</th><th>Tipo</th><th>Quantidade</th><th>Responsável</th></tr></thead>
+                <tbody>
+                  <tr><td data-label="Data">25/08</td><td data-label="Item">Ovos (dúzia)</td><td data-label="Tipo"><span class="badge danger">Saída</span></td><td data-label="Quantidade">-2</td><td data-label="Responsável">Marli Alves</td></tr>
+                  <tr><td data-label="Data">23/08</td><td data-label="Item">Farinha de trigo (kg)</td><td data-label="Tipo"><span class="badge primary">Entrada</span></td><td data-label="Quantidade">+10kg</td><td data-label="Responsável">João Silva</td></tr>
+                </tbody>
+              </table>
+              <table class="report-table" id="report-agenda" hidden>
+                <thead><tr><th>Data</th><th>Horário</th><th>Cliente</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td data-label="Data">25/08</td><td data-label="Horário">09:00</td><td data-label="Cliente">Rita Souza</td><td data-label="Status"><span class="badge primary">Confirmado</span></td></tr>
+                  <tr><td data-label="Data">25/08</td><td data-label="Horário">14:00</td><td data-label="Cliente">Carlos Eduardo</td><td data-label="Status"><span class="badge warning">Pendente</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="action-row" style="margin-top:16px;">
+              <button class="action-btn" id="export-pdf-btn" type="button">⭳ Exportar em PDF</button>
+            </div>
+          </div>
+
           <button class="fab" id="fab-btn" type="button" aria-label="Novo item de venda">+</button>
 
           <!-- Bottom nav (mobile) -->
@@ -372,19 +491,70 @@
             <button class="nav-btn" data-screen="mercado" type="button"><span class="ic">🛍️</span><span class="lb">Mercado</span></button>
             <button class="nav-btn" data-screen="estoque" type="button"><span class="ic">📦</span><span class="lb">Estoque</span></button>
             <button class="nav-btn" data-screen="agenda" type="button"><span class="ic">📅</span><span class="lb">Agenda</span></button>
+            <button class="nav-btn" data-screen="relatorios" type="button" data-gerente-only><span class="ic">📊</span><span class="lb">Relatórios</span></button>
             <button class="nav-btn" data-screen="perfil" type="button"><span class="ic">👤</span><span class="lb">Perfil</span></button>
           </nav>
         </div>
 
-        <!-- Modal -->
+        <!-- Modal: novo/editar item de venda -->
         <div class="modal-overlay" id="modal-overlay">
           <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <h3 id="modal-title">Novo item de venda</h3>
+            <h3 id="modal-title" data-default="Novo item de venda">Novo item de venda</h3>
             <div class="field"><label for="novo-item-nome">Nome</label><input id="novo-item-nome" type="text" placeholder="Ex: Brigadeiro gourmet"></div>
-            <div class="field"><label for="novo-item-preco">Preço</label><input id="novo-item-preco" type="text" placeholder="R$ 0,00" inputmode="decimal"></div>
+            <div class="field"><label for="novo-item-desc">Descrição</label><textarea id="novo-item-desc" rows="2" placeholder="Ex: Chocolate belga, granulado crocante"></textarea></div>
+            <div class="field-row">
+              <div class="field"><label for="novo-item-preco">Preço</label><input id="novo-item-preco" type="text" placeholder="R$ 0,00" inputmode="decimal"></div>
+              <div class="field"><label for="novo-item-cat">Categoria</label>
+                <select id="novo-item-cat">
+                  <option>Doces</option><option>Salgados</option><option>Encomendas</option>
+                </select>
+              </div>
+            </div>
+            <div class="field"><label for="novo-item-img">Imagem <span class="opt-badge">Opcional</span></label><input id="novo-item-img" type="file" accept="image/*"></div>
             <div class="modal-actions">
               <button class="action-btn secondary" onclick="closeModal()" type="button">Cancelar</button>
               <button class="action-btn" onclick="closeModal()" type="button">Salvar item</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal: novo item de estoque -->
+        <div class="modal-overlay" id="modal-estoque-novo">
+          <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-estoque-novo-title">
+            <h3 id="modal-estoque-novo-title" data-default="Novo item de estoque">Novo item de estoque</h3>
+            <div class="field"><label for="est-nome">Nome</label><input id="est-nome" type="text" placeholder="Ex: Farinha de trigo"></div>
+            <div class="field-row">
+              <div class="field"><label for="est-qtd">Quantidade atual</label><input id="est-qtd" type="text" inputmode="decimal" placeholder="0"></div>
+              <div class="field"><label for="est-unid">Unidade</label>
+                <select id="est-unid"><option>Unidade</option><option>Kg</option><option>Litro</option></select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label for="est-cat">Categoria</label>
+                <select id="est-cat"><option>Ingredientes</option><option>Embalagens</option></select>
+              </div>
+              <div class="field"><label for="est-min">Qtd. mínima de alerta</label><input id="est-min" type="text" inputmode="decimal" placeholder="0"></div>
+            </div>
+            <div class="field"><label for="est-produto">Associar a item de venda <span class="opt-badge">Opcional</span></label>
+              <select id="est-produto"><option value="">Nenhum</option><option>Brigadeiro gourmet</option><option>Bolo de fubá</option></select>
+            </div>
+            <div class="modal-actions">
+              <button class="action-btn secondary" onclick="closeModal()" type="button">Cancelar</button>
+              <button class="action-btn" onclick="closeModal()" type="button">Salvar item</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal: movimentação de estoque -->
+        <div class="modal-overlay" id="modal-mov-estoque">
+          <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-mov-title">
+            <h3 id="modal-mov-title" data-default="Registrar movimentação">Registrar movimentação</h3>
+            <div class="field"><label for="mov-qtd">Quantidade</label><input id="mov-qtd" type="text" inputmode="decimal" placeholder="0"></div>
+            <div class="field"><label for="mov-data">Data</label><input id="mov-data" type="date"></div>
+            <div class="field"><label for="mov-motivo">Motivo (para saída) <span class="opt-badge">Opcional</span></label><input id="mov-motivo" type="text" placeholder="Ex: perda, ajuste"></div>
+            <div class="modal-actions">
+              <button class="action-btn secondary" onclick="closeModal()" type="button">Cancelar</button>
+              <button class="action-btn" onclick="closeModal()" type="button">Registrar</button>
             </div>
           </div>
         </div>
@@ -439,20 +609,15 @@
                 <button onclick="changeQty(this,1)" type="button" aria-label="Aumentar">+</button>
               </div>
             </div>
-
-            <div class="prod-card">
-              <div class="prod-thumb">🧁</div>
-              <div class="prod-info">
-                <div class="prod-name">Cupcake de morango</div>
-                <div class="prod-desc danger">Sem estoque no momento</div>
-                <div class="prod-price">R$ 7,00</div>
-              </div>
-            </div>
           </div>
         </div>
 
         <div class="vitrine-body" id="vitrine-agendar" style="display:none;">
-          <p class="section-label" style="margin-top:0;">Horários disponíveis hoje</p>
+          <div class="field" style="margin-bottom:16px;">
+            <label for="ag-data">Escolha o dia</label>
+            <select id="ag-data"></select>
+          </div>
+          <p class="section-label" style="margin-top:0;">Horários disponíveis</p>
           <div class="slot-grid">
             <div class="slot-chip disabled">09:00</div>
             <div class="slot-chip" onclick="selectSlot(this)" role="button" tabindex="0">10:00</div>
@@ -467,9 +632,23 @@
           <button class="btn-primary" type="button">Confirmar agendamento</button>
         </div>
 
-        <div class="cart-bar" id="cart-bar" role="status" aria-live="polite" style="display:none;">
-          <span id="cart-info">1 item · R$ 4,50</span>
-          <span class="cta">Ver pedido ›</span>
+        <div class="cart-bar" id="cart-bar" style="display:none;">
+          <span id="cart-info" role="status" aria-live="polite">1 item · R$ 4,50</span>
+          <button class="cta" type="button" onclick="openModal('checkout-modal')">Ver pedido ›</button>
+        </div>
+
+        <!-- Modal: checkout do cliente -->
+        <div class="modal-overlay" id="checkout-modal">
+          <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+            <h3 id="checkout-title">Confirmar pedido</h3>
+            <p class="field-hint" id="checkout-summary" style="margin-bottom:16px;">1 item · R$ 4,50</p>
+            <div class="field"><label for="pedido-nome">Nome</label><input id="pedido-nome" type="text" placeholder="Seu nome"></div>
+            <div class="field"><label for="pedido-tel">Telefone</label><input id="pedido-tel" type="text" placeholder="(69) 99999-0000" inputmode="tel"></div>
+            <div class="modal-actions">
+              <button class="action-btn secondary" onclick="closeModal()" type="button">Voltar</button>
+              <button class="action-btn" onclick="closeModal()" type="button">Confirmar pedido</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -477,6 +656,6 @@
   </section>
 </main>
 
-<script src="script.js" defer></script>
+<script src="./script.js" defer></script>
 </body>
 </html>

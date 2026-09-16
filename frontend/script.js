@@ -59,37 +59,109 @@
     });
   });
 
-  /* ---------- Modal ---------- */
-  const overlay = document.getElementById('modal-overlay');
+  /* ---------- Modal (suporta múltiplos overlays na página) ---------- */
   const fab = document.getElementById('fab-btn');
   let lastFocused = null;
 
-  if(fab && overlay){
-    fab.addEventListener('click', () => {
-      lastFocused = document.activeElement;
-      overlay.classList.add('show');
-      const firstInput = overlay.querySelector('input, button');
-      if(firstInput) firstInput.focus();
-    });
-  }
+  window.openModal = function(id, title){
+    const target = document.getElementById(id);
+    if(!target) return;
+    lastFocused = document.activeElement;
+    document.querySelectorAll('.modal-overlay').forEach(o => o.classList.remove('show'));
+    target.classList.add('show');
+    const heading = target.querySelector('h3');
+    if(heading) heading.textContent = title || heading.dataset.default || heading.textContent;
+    const firstField = target.querySelector('input, select, textarea, button');
+    if(firstField) firstField.focus();
+  };
 
   window.closeModal = function(){
-    if(!overlay) return;
-    overlay.classList.remove('show');
+    document.querySelectorAll('.modal-overlay').forEach(o => o.classList.remove('show'));
     if(lastFocused && lastFocused.focus) lastFocused.focus();
   };
 
-  if(overlay){
+  if(fab){
+    fab.addEventListener('click', () => openModal('modal-overlay'));
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
     overlay.addEventListener('click', (e) => {
       if(e.target === overlay) closeModal();
     });
-  }
+  });
 
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape') closeModal();
   });
 
-  /* ---------- Role switch (Gerente/Funcionário) ---------- */
+  /* ---------- Excluir item de uma lista (mercado/estoque) ---------- */
+  window.deleteListItem = function(btn){
+    const item = btn.closest('.list-item');
+    if(item) item.remove();
+  };
+
+  /* ---------- Histórico de movimentações do estoque ---------- */
+  window.toggleHistory = function(btn){
+    const wrap = btn.closest('.item-info').querySelector('.stock-history');
+    if(wrap) wrap.hidden = !wrap.hidden;
+  };
+
+  /* ---------- Badges clicáveis: alterar status (pedido/agendamento) ---------- */
+  document.querySelectorAll('.status-cycle').forEach(badge => {
+    badge.addEventListener('click', () => {
+      const states = badge.dataset.states.split('|');
+      const classes = badge.dataset.classes.split('|');
+      let idx = states.indexOf(badge.textContent.trim());
+      idx = (idx + 1) % states.length;
+      classes.forEach(c => badge.classList.remove(c));
+      badge.classList.add(classes[idx]);
+      badge.textContent = states[idx];
+    });
+  });
+
+  /* ---------- Badge clicável: revogar/reativar acesso de Funcionário ---------- */
+  document.querySelectorAll('.status-revoke').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const isActive = btn.textContent.trim() === btn.dataset.activeLabel;
+      btn.textContent = isActive ? btn.dataset.revokedLabel : btn.dataset.activeLabel;
+      btn.classList.toggle('danger', isActive);
+      btn.classList.toggle('neutral', !isActive);
+      const row = btn.closest('.team-row');
+      if(row) row.classList.toggle('revoked', isActive);
+    });
+  });
+
+  /* ---------- Agenda: alternar Diário / Semanal ---------- */
+  document.querySelectorAll('#agenda-view-switch button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#agenda-view-switch button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const view = btn.dataset.agendaView;
+      const diario = document.getElementById('agenda-diario');
+      const semanal = document.getElementById('agenda-semanal');
+      if(diario) diario.hidden = (view !== 'diario');
+      if(semanal) semanal.hidden = (view !== 'semanal');
+    });
+  });
+
+  /* ---------- Relatórios: trocar tipo de relatório e exportar em PDF ---------- */
+  document.querySelectorAll('#report-tabs .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#report-tabs .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const type = chip.dataset.report;
+      document.querySelectorAll('.report-table').forEach(t => { t.hidden = (t.id !== 'report-' + type); });
+    });
+  });
+
+  const exportBtn = document.getElementById('export-pdf-btn');
+  if(exportBtn) exportBtn.addEventListener('click', () => window.print());
+
+  /* ---------- Role switch (Gerente/Funcionário) ----------
+     Nota: usa seletores por id (não ".role-switch button") porque a classe
+     .role-switch também estiliza o alternador Diário/Semanal da Agenda. */
+  const ROLE_SWITCH_SELECTOR = '#role-switch-wrap button, #role-switch-wrap-mobile button';
+
   function applyRole(role){
     const isGerente = role === 'gerente';
     const label = isGerente ? 'Gerente' : 'Funcionário';
@@ -99,14 +171,37 @@
       .forEach(el => el.style.display = isGerente ? '' : 'none');
     document.querySelectorAll('[data-funcionario-only]')
       .forEach(el => el.style.display = isGerente ? 'none' : '');
-    document.querySelectorAll('.role-switch button').forEach(b => {
+    document.querySelectorAll(ROLE_SWITCH_SELECTOR).forEach(b => {
       b.classList.toggle('active', b.dataset.role === role);
     });
+
+    // Funcionário não acessa Relatórios: volta para o Início se estiver lá
+    if(!isGerente){
+      const relScreen = document.getElementById('screen-relatorios');
+      if(relScreen && relScreen.classList.contains('active')) goScreen('inicio');
+    }
   }
 
-  document.querySelectorAll('.role-switch button').forEach(btn => {
+  document.querySelectorAll(ROLE_SWITCH_SELECTOR).forEach(btn => {
     btn.addEventListener('click', () => applyRole(btn.dataset.role));
   });
+
+  /* ---------- Logout ---------- */
+  window.doLogout = function(){
+    applyRole('gerente');
+    goScreen('inicio');
+    setMode('login');
+  };
+  document.querySelectorAll('#logout-btn-desktop, #logout-btn-mobile').forEach(btn => {
+    btn.addEventListener('click', doLogout);
+  });
+
+  /* ---------- Esqueci minha senha ---------- */
+  const forgotBtn = document.getElementById('forgot-btn');
+  const forgotMsg = document.getElementById('forgot-msg');
+  if(forgotBtn && forgotMsg){
+    forgotBtn.addEventListener('click', () => { forgotMsg.hidden = false; });
+  }
 
   /* ---------- Vitrine: tabs ---------- */
   document.querySelectorAll('.vtab').forEach(btn => {
@@ -152,14 +247,34 @@
     });
     const bar = document.getElementById('cart-bar');
     const info = document.getElementById('cart-info');
+    const summary = document.getElementById('checkout-summary');
     if(!bar) return;
     if(totalItems > 0){
-      bar.style.display = 'flex';
-      info.textContent = totalItems + (totalItems === 1 ? ' item · R$ ' : ' itens · R$ ')
+      const text = totalItems + (totalItems === 1 ? ' item · R$ ' : ' itens · R$ ')
         + totalPrice.toFixed(2).replace('.', ',');
+      bar.style.display = 'flex';
+      info.textContent = text;
+      if(summary) summary.textContent = text;
     } else {
       bar.style.display = 'none';
     }
+  }
+
+  /* ---------- Vitrine: próximos 30 dias para agendamento ---------- */
+  const agDataSelect = document.getElementById('ag-data');
+  if(agDataSelect){
+    const dayNames = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+    const monthNames = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+    const base = new Date();
+    const frag = document.createDocumentFragment();
+    for(let i = 0; i < 30; i++){
+      const d = new Date(base);
+      d.setDate(base.getDate() + i);
+      const opt = document.createElement('option');
+      opt.textContent = (i === 0 ? 'Hoje · ' : '') + dayNames[d.getDay()] + ', ' + d.getDate() + ' de ' + monthNames[d.getMonth()];
+      frag.appendChild(opt);
+    }
+    agDataSelect.appendChild(frag);
   }
 
   /* ---------- Vitrine: slot selection ---------- */
