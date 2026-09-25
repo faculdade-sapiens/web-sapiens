@@ -1,0 +1,47 @@
+/* =========================================================
+   AUTH.CSS — login, cadastro, escolher perfil
+   ========================================================= */
+.auth-page { min-height: 100vh; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 40px 16px; }
+.auth-box { width: 100%; max-width: 420px; }
+.auth-card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100); padding: 32px; }
+.auth-head { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 28px; }
+.auth-head h1 { font-size: 1.375rem; margin-top: 18px; }
+.auth-head p { font-size: .8125rem; color: var(--text-secondary); margin-top: 6px; }
+.auth-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--text-secondary); font-size: .75rem; }
+.auth-divider::before, .auth-divider::after { content: ""; flex: 1; height: 1px; background: var(--gray-100); }
+.auth-social { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.auth-social-btn { display: flex; align-items: center; justify-content: center; gap: 8px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); padding: 10px; font-size: .75rem; font-weight: 500; }
+.auth-social-btn:hover { border-color: var(--gray-400); }
+.auth-social-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--gray-100); display: flex; align-items: center; justify-content: center; font-size: .6875rem; font-weight: 700; }
+.auth-foot { text-align: center; font-size: .8125rem; color: var(--text-secondary); }
+
+.demo-box { background: var(--blue-light); border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; }
+.demo-box p.label { font-size: .6875rem; font-weight: 700; color: var(--blue-primary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 12px; }
+.demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.demo-btn { padding: 9px 8px; border-radius: var(--radius-sm); font-size: .75rem; font-weight: 600; background: var(--white); border: 1px solid var(--border); color: var(--gray-600); }
+.demo-btn.active { background: var(--blue-primary); color: var(--white); border-color: var(--blue-primary); }
+
+.profile-picker { max-width: 880px; margin: 0 auto; width: 100%; }
+.profile-picker-head { text-align: center; margin-bottom: 40px; }
+.profile-picker-head .logo { justify-content: center; margin-bottom: 24px; }
+.profile-picker-head h1 { font-size: 1.875rem; margin-bottom: 8px; }
+.profile-picker-head p { color: var(--text-secondary); }
+.profile-grid { display: grid; gap: 20px; margin-bottom: 32px; }
+.profile-card {
+  background: var(--white); border: 2px solid var(--gray-100); border-radius: var(--radius-lg); padding: 24px;
+  display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer;
+  transition: box-shadow .2s ease, border-color .2s ease;
+}
+.profile-card:hover { box-shadow: var(--shadow-md); border-color: var(--blue-primary); }
+.profile-card-icon { width: 64px; height: 64px; border-radius: var(--radius-md); background: var(--blue-light); color: var(--blue-primary); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
+.profile-card h3 { font-size: 1.0625rem; margin-bottom: 8px; }
+.profile-card p { font-size: .8125rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+.profile-card .btn { width: 100%; }
+
+/* --- Responsivo --- */
+@media (min-width: 480px) {
+  .demo-grid { gap: 10px; }
+}
+@media (min-width: 640px) {
+  .profile-grid { grid-template-columns: repeat(3, 1fr); }
+}
