@@ -1,0 +1,4 @@
+// Isso faz com que o Live Server abra na pasta "frontend" ao invés da raiz do projeto.
+{
+  "liveServer.settings.root": "/frontend"
+}

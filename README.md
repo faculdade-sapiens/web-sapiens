@@ -45,7 +45,15 @@ Concorrentes grandes entregam ecossistemas completos mas complexos e caros, com 
 - Railway
 
 ### Linguagens de programação
-(Em análise)
+**Frontend**:
+- HTML5
+- CSS3
+- JavaScript
+
+**Backend**:
+- C#
+
+Essas linguagens foram escolhidas
 
 ### Integrantes
 - Felipe Siqueira Ramos Galvez
@@ -53,4 +61,4 @@ Concorrentes grandes entregam ecossistemas completos mas complexos e caros, com 
 - Lucas Ronnie dos Santos Diniz
 - Luiz Felipe Oliveira Almeida
 - Ruan Felipe Xavier Nunes
-- Guilherme Santos Ferreira
+- Victor Lobato
