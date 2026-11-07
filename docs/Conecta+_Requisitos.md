@@ -1,6 +1,6 @@
 # Documento de Requisitos — Conecta+
 
-**Versão:** 2.1
+**Versão:** 2.2
 
 ## 1. Visão Geral
 
@@ -84,11 +84,11 @@ Requisitos funcionais descrevem **o que o sistema deve fazer**. Cada requisito a
 | RF31 | O sistema deve permitir que o Gerente configure os dias da semana e os horários de início e término do expediente disponíveis para agendamento. |
 | RF32 | O sistema deve permitir que o Gerente defina a duração padrão de um atendimento, em minutos, usada para calcular os horários disponíveis. |
 | RF33 | O sistema deve permitir que o Cliente visualize, em uma página pública, os horários disponíveis para agendamento nos próximos 30 dias. |
-| RF34 | O sistema deve permitir que o Cliente solicite um agendamento em um horário disponível, informando nome e telefone de contato. |
+| RF34 | O sistema deve permitir que o Cliente solicite um agendamento em um horário disponível, informando nome e telefone de contato e, opcionalmente, e-mail. |
 | RF35 | O sistema deve impedir o registro de dois agendamentos confirmados no mesmo horário, rejeitando a segunda tentativa com mensagem de erro. |
 | RF36 | O sistema deve exibir, para o Gerente e Funcionários com permissão, a agenda em formato de calendário com visualização diária e semanal. |
 | RF37 | O sistema deve permitir que o Gerente ou Funcionário com permissão altere o status de um agendamento entre os valores: "Pendente", "Confirmado", "Remarcado" e "Cancelado". |
-| RF38 | O sistema deve enviar uma notificação por e-mail ao Cliente sempre que o status do seu agendamento for alterado para "Confirmado", "Remarcado" ou "Cancelado". |
+| RF38 | O sistema deve enviar uma notificação por e-mail ao Cliente que tiver informado e-mail sempre que o status do seu agendamento for alterado para "Confirmado", "Remarcado" ou "Cancelado". Se o Cliente não informou e-mail, nenhuma notificação é enviada. |
 | RF39 | O sistema deve permitir a consulta do histórico de agendamentos anteriores associados a um mesmo número de telefone de Cliente. |
 
 ### 2.6 Módulo de Relatórios
@@ -185,7 +185,7 @@ Requisitos não funcionais descrevem **como o sistema deve se comportar**, com c
 | ID | Regra |
 |---|---|
 | RN01 | Um item de venda só pode ser associado a, no máximo, um item de estoque. |
-| RN02 | Um agendamento com status "Concluído" ou "Cancelado" não pode ser remarcado; deve ser criado um novo agendamento. |
+| RN02 | Um agendamento com status "Cancelado" não pode ser remarcado; deve ser criado um novo agendamento. |
 | RN03 | O preço de um item de venda deve ser um valor numérico maior que zero. |
 | RN04 | A quantidade mínima de alerta de um item de estoque não pode ser negativa. |
 
@@ -210,3 +210,4 @@ Para evitar ambiguidade sobre os limites do sistema, ficam explicitamente **fora
 | 1.0 | — | Versão inicial, com público-alvo amplo (produtores rurais, ONGs, autônomos). |
 | 2.0 | — | Escopo nichado exclusivamente para microempreendedores; requisitos reescritos para eliminar ambiguidades e adicionar critérios verificáveis; adição da Matriz de Permissões, Regras de Negócio e seção Fora de Escopo. |
 | 2.1 | — | Adicionado campo de CNPJ (opcional) no cadastro e edição da conta do negócio, com validação de formato e unicidade (RF02A, RF02B, RF02C). |
+| 2.2 | 07/11/2026 | RN02 restrita a agendamentos "Cancelado"; e-mail opcional no agendamento (RF34) e notificação por e-mail só para Clientes que informaram e-mail (RF38). |
