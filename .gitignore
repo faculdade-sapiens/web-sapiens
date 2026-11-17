@@ -1,0 +1,26 @@
+# segredos
+.env
+.env.*
+!.env.example
+appsettings.*.local.json
+secrets.json
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.rsuser
+.vs/
+TestResults/
+*.log
+
+# editores / sistema
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# frontend
+node_modules/
+.vercel/
