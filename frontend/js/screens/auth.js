@@ -108,30 +108,67 @@ const ScreenCadastroCliente = {
   render: function () {
     return (
       '<div class="auth-page fade-in"><div class="auth-box"><div class="auth-card">' +
-      '<div class="auth-head">' + logoHtml("lg") + "<h1>Crie sua conta</h1><p>É rápido e gratuito</p></div>" +
-      '<div class="field"><label for="cc-nome">Nome completo</label><input id="cc-nome" type="text" placeholder="Seu nome completo" autocomplete="name"></div>' +
-      '<div class="field"><label for="cc-tel">Telefone</label><input id="cc-tel" type="tel" placeholder="(00) 00000-0000" autocomplete="tel"></div>' +
-      '<div class="field"><label for="cc-email">E-mail</label><input id="cc-email" type="email" placeholder="voce@email.com" autocomplete="email"></div>' +
-      '<div class="field"><label for="cc-senha">Senha</label><input id="cc-senha" type="password" placeholder="Mínimo 8 caracteres" autocomplete="new-password"></div>' +
+      '<div class="auth-head">' + logoHtml("lg") + "<h1>Crie sua conta</h1><p>É rápido e gratuito. Para pedir, a conta não é obrigatória.</p></div>" +
+      '<div class="form-alert" role="alert" hidden></div>' +
+      '<div class="field"><label for="cc-nome">Nome completo</label><input id="cc-nome" type="text" placeholder="Seu nome completo" autocomplete="name" maxlength="120"></div>' +
+      '<div class="field"><label for="cc-tel">Telefone (opcional)</label><input id="cc-tel" type="tel" placeholder="(00) 00000-0000" autocomplete="tel" maxlength="20"></div>' +
+      '<div class="field"><label for="cc-email">E-mail</label><input id="cc-email" type="email" placeholder="voce@email.com" autocomplete="email" maxlength="255"></div>' +
+      '<div class="field"><label for="cc-senha">Senha</label><input id="cc-senha" type="password" placeholder="Mínimo 8 caracteres, com letras e números" autocomplete="new-password"></div>' +
       '<div class="field"><label for="cc-conf">Confirmar senha</label><input id="cc-conf" type="password" placeholder="Repita a senha" autocomplete="new-password"></div>' +
-      '<label class="checkbox-row" style="margin-bottom:20px;"><input type="checkbox" id="cc-aceito"><span style="font-size:.8125rem;color:var(--text-secondary);">Li e aceito os <span style="color:var(--blue-primary);">termos de uso</span></span></label>' +
+      '<div class="field" style="margin-bottom:20px;"><label class="checkbox-row"><input type="checkbox" id="cc-aceito"><span style="font-size:.8125rem;color:var(--text-secondary);">Li e aceito os <span style="color:var(--blue-primary);">termos de uso</span></span></label></div>' +
       '<button type="button" class="btn btn-primary btn-block" id="cadastroClienteBtn" disabled style="margin-bottom:16px;">Criar minha conta</button>' +
       '<p class="auth-foot">Já possui uma conta? <button type="button" class="btn-link" data-href="/login">Entrar</button></p>' +
       "</div></div></div>"
     );
   },
   bind: function () {
+    const card = qs(".auth-card");
     const checkbox = qs("#cc-aceito");
     const btn = qs("#cadastroClienteBtn");
-    if (checkbox && btn) {
-      checkbox.addEventListener("change", function () { btn.disabled = !checkbox.checked; });
-      btn.addEventListener("click", function () {
-        if (checkbox.checked) {
-          // TODO(backend): validar dados e criar conta de cliente
-          navigate("/cliente");
-        }
-      });
+    if (!card || !checkbox || !btn) return;
+
+    const CAMPOS = { nome: "cc-nome", telefone: "cc-tel", email: "cc-email", senha: "cc-senha", confirmarSenha: "cc-conf", aceitouTermos: "cc-aceito" };
+    const valor = function (id) { return qs("#" + id).value; };
+
+    checkbox.addEventListener("change", function () { btn.disabled = !checkbox.checked; });
+
+    async function cadastrar() {
+      limparErros(card);
+      const erros = {};
+      const add = function (id, msg) { if (msg) erros[id] = msg; };
+      add("cc-nome", validarNomeCampo(valor("cc-nome"), "seu nome"));
+      add("cc-tel", validarTelefoneCampo(valor("cc-tel")));
+      add("cc-email", validarEmailCampo(valor("cc-email")));
+      add("cc-senha", validarSenhaCampo(valor("cc-senha")));
+      if (valor("cc-senha") !== valor("cc-conf")) add("cc-conf", "As senhas não são iguais.");
+      if (!checkbox.checked) add("cc-aceito", "Para criar a conta, aceite os termos de uso.");
+      if (Object.keys(erros).length) { mostrarErrosCampos(erros); focarPrimeiroErro(card); return; }
+
+      botaoCarregando(btn, true, "Criando sua conta...");
+      try {
+        const sessao = await chamarApi("POST", "/api/auth/cadastro-cliente", {
+          nome: valor("cc-nome"),
+          telefone: valor("cc-tel"),
+          email: valor("cc-email").trim(),
+          senha: valor("cc-senha"),
+          confirmarSenha: valor("cc-conf"),
+          aceitouTermos: checkbox.checked,
+        });
+        salvarSessao(sessao);
+        navigate(destinoPorPerfil(sessao.usuario.perfil));
+        showToast("Conta criada! Bem-vindo ao Conecta+.");
+      } catch (e) {
+        botaoCarregando(btn, false);
+        if (!(e instanceof ErroApi)) throw e;
+        const mapa = {};
+        Object.keys(e.campos).forEach(function (campo) { if (CAMPOS[campo]) mapa[CAMPOS[campo]] = e.campos[campo]; });
+        mostrarErrosCampos(mapa);
+        if (!Object.keys(mapa).length || e.mensagem !== "Confira os campos destacados.") mostrarAlerta(card, e.mensagem);
+        focarPrimeiroErro(card);
+      }
     }
+
+    btn.addEventListener("click", cadastrar);
   }
 };
 

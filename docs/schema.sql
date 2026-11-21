@@ -3,7 +3,9 @@
 -- Migrations aplicadas, em ordem:
 --   1. conecta_schema_inicial
 --   2. conecta_autenticacao_apoio  (RF04, RF05, RF09)
--- Documentacao: docs/Conecta+_Modelagem_Banco_de_Dados.md (versao 1.3)
+--   3. conecta_conta_cliente       (RF18A)
+--   4. conecta_sessao_versao       (RF06)
+-- Documentacao: docs/Conecta+_Modelagem_Banco_de_Dados.md (versao 1.5)
 
 -- =====================================================================
 -- Migration 1: conecta_schema_inicial
@@ -159,3 +161,31 @@ create table public.token_redefinicao_senha (
 );
 create index token_redefinicao_usuario_idx on public.token_redefinicao_senha (usuario_id);
 alter table public.token_redefinicao_senha enable row level security;
+
+-- =====================================================================
+-- Migration 3: conecta_conta_cliente
+-- =====================================================================
+
+-- RF18A: conta opcional do cliente (pedir pela vitrine continua sem conta)
+create table public.cliente (
+  id integer generated always as identity primary key,
+  nome varchar(120) not null,
+  email varchar(255) not null,
+  senha_hash varchar(255) not null,
+  telefone varchar(20),
+  ativo boolean not null default true,
+  aceitou_termos_em timestamptz not null,
+  criado_em timestamptz not null default now(),
+  tentativas_login_falhas smallint not null default 0 check (tentativas_login_falhas >= 0),
+  bloqueado_ate timestamptz
+);
+create unique index cliente_email_uk on public.cliente (lower(email));
+alter table public.cliente enable row level security;
+
+-- =====================================================================
+-- Migration 4: conecta_sessao_versao
+-- =====================================================================
+
+-- RF06: logout no servidor. O token leva a versao; o "Sair" aumenta a versao e todo token antigo deixa de valer.
+alter table public.usuario add column sessao_versao integer not null default 0;
+alter table public.cliente add column sessao_versao integer not null default 0;

@@ -1,6 +1,6 @@
 # Modelagem de Banco de Dados — Conecta+
 
-**Versão:** 1.3 
+**Versão:** 1.5 
 **SGBD de referência:** Supabase PostgreSQL
 
 ---
@@ -16,7 +16,7 @@ Modelo enxuto para os três módulos do sistema (Mercado, Estoque e Agenda) mais
 - Senhas são gravadas apenas como hash (bcrypt).
 - Todos os campos de data/hora (`negocio.criado_em`, `usuario.criado_em`, `pedido.criado_em`, `movimentacao_estoque.data_movimentacao`, `agendamento.inicio`, `agendamento.criado_em`, `usuario.bloqueado_ate`, `token_redefinicao_senha.expira_em`/`usado_em`/`criado_em`) são `timestamptz`, com padrão `now()` onde se aplica (`criado_em` e `data_movimentacao`).
 
-**Tabelas:** `negocio`, `usuario`, `item_venda`, `pedido`, `item_pedido`, `item_estoque`, `movimentacao_estoque`, `config_agenda`, `horario_expediente`, `agendamento`, `token_redefinicao_senha`.
+**Tabelas:** `negocio`, `usuario`, `item_venda`, `pedido`, `item_pedido`, `item_estoque`, `movimentacao_estoque`, `config_agenda`, `horario_expediente`, `agendamento`, `token_redefinicao_senha`, `cliente`.
 
 ---
 
@@ -61,6 +61,7 @@ erDiagram
         smallint tentativas_login_falhas "padrao 0, maior ou igual a 0"
         timestamptz bloqueado_ate "nullable"
         boolean deve_trocar_senha "padrao false"
+        int sessao_versao "padrao 0"
     }
     token_redefinicao_senha {
         int id PK
@@ -69,6 +70,19 @@ erDiagram
         timestamptz expira_em "criado_em + 30 min"
         timestamptz usado_em "nullable"
         timestamptz criado_em
+    }
+    cliente {
+        int id PK
+        varchar nome
+        varchar email "unico, sem diferenciar maiusculas"
+        varchar senha_hash
+        varchar telefone "nullable"
+        boolean ativo
+        timestamptz aceitou_termos_em
+        timestamptz criado_em
+        smallint tentativas_login_falhas
+        timestamptz bloqueado_ate "nullable"
+        int sessao_versao "padrao 0"
     }
     item_venda {
         int id PK
@@ -182,6 +196,7 @@ classDiagram
         +smallint tentativasLoginFalhas
         +timestamptz bloqueadoAte
         +boolean deveTrocarSenha
+        +int sessaoVersao
         +autenticar(senha) boolean
         +isGerente() boolean
         +estaBloqueado() boolean
@@ -193,6 +208,21 @@ classDiagram
         +timestamptz usadoEm
         +timestamptz criadoEm
         +estaValido() boolean
+    }
+    class Cliente {
+        +int id
+        +varchar nome
+        +varchar email
+        +varchar senhaHash
+        +varchar telefone
+        +boolean ativo
+        +timestamptz aceitouTermosEm
+        +timestamptz criadoEm
+        +smallint tentativasLoginFalhas
+        +timestamptz bloqueadoAte
+        +int sessaoVersao
+        +autenticar(senha) boolean
+        +estaBloqueado() boolean
     }
     class ItemVenda {
         +int id
@@ -315,6 +345,7 @@ classDiagram
 | **horario_expediente** | id, negocio_id, dia_semana, hora_inicio, hora_fim | Dias e faixas de atendimento (RF31); `dia_semana` smallint de 0 (domingo) a 6 (sábado); `hora_inicio`/`hora_fim` do tipo `time`, com `hora_fim > hora_inicio`; várias faixas por dia são permitidas (ex.: pausa de almoço), mas não duas com o mesmo início no mesmo dia |
 | **agendamento** | id, negocio_id, cliente_nome, cliente_telefone, cliente_email, inicio, status, criado_em | `status` com 4 valores (RF37); índice único parcial em (`negocio_id`, `inicio`) onde `status = 'CONFIRMADO'` (RF35); índice em (`negocio_id`, `cliente_telefone`) para o histórico (RF39) |
 | **token_redefinicao_senha** | id, usuario_id, token_hash, expira_em, usado_em, criado_em | Link de redefinição de senha (RF05). Guarda só o hash SHA-256 do token, nunca o token em si; `expira_em` = `criado_em` + 30 min; `usado_em` preenchido quando o token é usado (só pode ser usado uma vez) |
+| **cliente** | id, nome, email, senha_hash, telefone, ativo, aceitou_termos_em, criado_em, tentativas_login_falhas, bloqueado_ate | Conta **opcional** do Cliente (RF18A). Não pertence a um negócio: o mesmo cliente pode comprar de vários. `email` único sem diferenciar maiúsculas; o mesmo e-mail não pode existir em `usuario` e `cliente` ao mesmo tempo (garantido na aplicação). `aceitou_termos_em` registra o aceite dos termos de uso (LGPD, RNF10). `ativo=false` bloqueia o login. Mesmo bloqueio do RF04 |
 
 ### 4.1 Restrições no banco
 
@@ -336,6 +367,7 @@ Além da validação na aplicação, o banco também garante:
 | Um único agendamento `CONFIRMADO` por (`negocio_id`, `inicio`) | RF35 |
 | `usuario.tentativas_login_falhas >= 0` | RF04 |
 | `token_redefinicao_senha.token_hash` único e `expira_em > criado_em` | RF05 |
+| `cliente.email` único sem diferenciar maiúsculas; `cliente.tentativas_login_falhas >= 0` | RF18A, RF04 |
 
 ---
 
@@ -353,6 +385,7 @@ Implementadas na camada de aplicação (Model/serviços), não só no banco:
 | RN02 | Agendamento `CANCELADO` não pode ser remarcado; deve ser criado um novo agendamento (o cancelado é mantido no histórico). |
 | RN03 | `item_venda.preco` deve ser maior que zero. |
 | RN04 | `item_estoque.quantidade_minima` não pode ser negativa. |
+| RF18A | O Cliente pode criar conta, mas não é obrigado. Sem o aceite dos termos a conta não é criada. Um e-mail pertence a um `usuario` **ou** a um `cliente`, nunca aos dois. O login é a mesma tela para todos: o servidor procura o e-mail em `usuario` e depois em `cliente`. O token do cliente tem perfil `CLIENTE` e não tem `negocio_id`, então não acessa nenhuma rota do sistema do negócio. |
 | RF04 | Senha incorreta soma 1 em `usuario.tentativas_login_falhas`; na 5ª seguida, grava `bloqueado_ate = now() + 15 min`. Login com sucesso zera o contador e limpa `bloqueado_ate`. Enquanto `bloqueado_ate > now()`, o login é recusado mesmo com a senha certa. |
 | RF05 | Ao pedir redefinição, gera um token aleatório, envia o link por e-mail e grava só o hash em `token_redefinicao_senha`. O token vale se `usado_em` for nulo e `expira_em > now()`. Ao redefinir, grava `usado_em`, troca `senha_hash` e zera o bloqueio. Se o e-mail não existir, a resposta é a mesma, para não revelar quais e-mails estão cadastrados. |
 | RF09 | Ao cadastrar um Funcionário com senha temporária (RF08), grava `deve_trocar_senha = true`. Enquanto estiver `true`, após o login o usuário só pode acessar a tela de nova senha. Ao definir a nova senha, grava `false`. O Gerente que cria a própria conta (RF01) começa com `false`. |
@@ -366,6 +399,7 @@ Implementadas na camada de aplicação (Model/serviços), não só no banco:
 - O banco é Supabase PostgreSQL (projeto `qpauincpahhhamouclry`, região us-east-1).
 - RLS (Row Level Security) está habilitado em todas as tabelas, **sem políticas**: a API pública do Supabase (PostgREST) fica bloqueada. Só o backend C# (Railway) acessa os dados, por conexão direta com a connection string do Postgres. **Não usar** a chave anon/publishable para acessar dados.
 - A autenticação é própria (tabela `usuario` + bcrypt), sem Supabase Auth.
+- Logout no servidor (RF06): o token leva o número `sessao_versao` da conta. O "Sair" (`POST /api/auth/sair`) aumenta esse número, e o backend recusa qualquer token com número antigo. Um token roubado deixa de valer na hora, inclusive em outros aparelhos.
 - O token de redefinição de senha nunca é gravado em texto: o banco guarda só o hash SHA-256. Quem ler o banco não consegue montar um link válido.
 - A função `public.rls_auto_enable()` (event trigger `ensure_rls`) foi ativada na criação do projeto e liga o RLS automaticamente em toda tabela nova do schema `public`. Deve ser mantida. O aviso do Supabase sobre ela poder ser executada por `anon` não é um risco real: funções do tipo `event_trigger` não podem ser chamadas diretamente.
 - As regras RF21, RF24, RF26 e RF27 (estoque e vitrine) continuam na aplicação e precisam de **transação**: atualizar `item_estoque.quantidade_atual` e inserir a `movimentacao_estoque` juntos.
@@ -394,6 +428,36 @@ create index token_redefinicao_usuario_idx on public.token_redefinicao_senha (us
 alter table public.token_redefinicao_senha enable row level security;
 ```
 
+### 6.2 Migration da conta de cliente (RF18A)
+
+DDL aplicado no Supabase em 21/11/2026 pela migration `conecta_conta_cliente`.
+
+```sql
+create table public.cliente (
+  id integer generated always as identity primary key,
+  nome varchar(120) not null,
+  email varchar(255) not null,
+  senha_hash varchar(255) not null,
+  telefone varchar(20),
+  ativo boolean not null default true,
+  aceitou_termos_em timestamptz not null,
+  criado_em timestamptz not null default now(),
+  tentativas_login_falhas smallint not null default 0 check (tentativas_login_falhas >= 0),
+  bloqueado_ate timestamptz
+);
+create unique index cliente_email_uk on public.cliente (lower(email));
+alter table public.cliente enable row level security;
+```
+
+### 6.3 Migration do logout no servidor (RF06)
+
+DDL aplicado no Supabase em 21/11/2026 pela migration `conecta_sessao_versao`.
+
+```sql
+alter table public.usuario add column sessao_versao integer not null default 0;
+alter table public.cliente add column sessao_versao integer not null default 0;
+```
+
 ---
 
 ## 7. E-mail no agendamento
@@ -410,3 +474,5 @@ alter table public.token_redefinicao_senha enable row level security;
 | 1.1 | 07/11/2026 | Sincronização com o banco criado no Supabase: `negocio.slug` e `criado_em`; `cnpj` varchar(14) só com dígitos; `usuario.criado_em` e e-mail único sem diferenciar maiúsculas; `horario_expediente` com `time`, `dia_semana` smallint 0–6 e várias faixas por dia; `item_pedido.nome_item` e `item_venda_id` nulável (ON DELETE SET NULL); `agendamento.criado_em` e índices de RF35/RF39; datas em `timestamptz`; restrições CHECK no banco (seção 4.1); regras de exclusão (seção 2.1); RN02 citando só `CANCELADO`; nova seção 6, Segurança e acesso ao banco; seção 7 registra que o e-mail do agendamento é opcional e só é usado para notificar quem o informou. |
 | 1.2 | 07/11/2026 | Modelagem de RF04 (colunas `tentativas_login_falhas` e `bloqueado_ate` em `usuario`), RF09 (coluna `deve_trocar_senha` em `usuario`) e RF05 (tabela `token_redefinicao_senha`), com DDL proposto na seção 6.1, **ainda não aplicado no Supabase**; documentada a função `rls_auto_enable()` na seção 6. |
 | 1.3 | 07/11/2026 | Migration `conecta_autenticacao_apoio` aplicada no Supabase: colunas `tentativas_login_falhas`, `bloqueado_ate` e `deve_trocar_senha` em `usuario` e tabela `token_redefinicao_senha` (com RLS). Removidas as marcações "planejado". |
+| 1.4 | 21/11/2026 | Migration `conecta_conta_cliente` aplicada no Supabase: tabela `cliente` (conta opcional do Cliente, RF18A), com aceite dos termos, bloqueio por tentativas e RLS. E-mail único entre `usuario` e `cliente`. |
+| 1.5 | 21/11/2026 | Migration `conecta_sessao_versao`: coluna `sessao_versao` em `usuario` e `cliente` para o logout no servidor (RF06). |

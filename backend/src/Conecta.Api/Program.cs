@@ -37,7 +37,7 @@ builder.Services.Configure<AuthOpcoes>(builder.Configuration.GetSection(AuthOpco
 // banco
 var banco = builder.Configuration.GetSection(BancoOpcoes.Secao).Get<BancoOpcoes>() ?? new BancoOpcoes();
 if (string.IsNullOrWhiteSpace(banco.Senha))
-    throw new InvalidOperationException("Falta a senha do banco. Coloque Banco__Senha no backend/.env");
+    throw new InvalidOperationException("Falta a senha do banco: Banco__Senha no backend/.env (local) ou em Variables (Railway).");
 
 var connectionString = new NpgsqlConnectionStringBuilder
 {
@@ -47,6 +47,8 @@ var connectionString = new NpgsqlConnectionStringBuilder
     Username = banco.Usuario,
     Password = banco.Senha,
     SslMode = SslMode.Require,
+    // o Supabase nao usa Kerberos; sem isso o Npgsql tenta carregar libgssapi_krb5 no Linux e loga erro
+    GssEncryptionMode = GssEncryptionMode.Disable,
 }.ConnectionString;
 
 builder.Services.AddDbContext<ConectaDbContext>(opcoes => opcoes
@@ -56,7 +58,7 @@ builder.Services.AddDbContext<ConectaDbContext>(opcoes => opcoes
 // login (JWT)
 var jwt = builder.Configuration.GetSection(JwtOpcoes.Secao).Get<JwtOpcoes>() ?? new JwtOpcoes();
 if (jwt.Secret.Length < 32)
-    throw new InvalidOperationException("Jwt__Secret precisa ter pelo menos 32 caracteres. Coloque no backend/.env");
+    throw new InvalidOperationException("Jwt__Secret precisa ter pelo menos 32 caracteres: backend/.env (local) ou Variables (Railway).");
 
 builder.Services.AddSingleton<GeradorToken>();
 builder.Services
@@ -86,27 +88,58 @@ builder.Services
                     return;
                 }
                 var db = ctx.HttpContext.RequestServices.GetRequiredService<ConectaDbContext>();
+
+                // token de antes do ultimo "Sair" (sessao_versao mudou) nao vale mais (RF06)
+                var versaoToken = user.LerSessaoVersao();
+
+                if (user.EhCliente())
+                {
+                    var cliente = await db.Clientes.AsNoTracking()
+                        .Where(c => c.Id == id).Select(c => new { c.Ativo, c.SessaoVersao })
+                        .FirstOrDefaultAsync(ctx.HttpContext.RequestAborted);
+                    if (cliente is null || !cliente.Ativo || cliente.SessaoVersao != versaoToken
+                        || user.FindFirst(Claims.NegocioId) is not null)
+                        ctx.Fail("sessao invalida");
+                    return;
+                }
+
                 var atual = await db.Usuarios.AsNoTracking()
                     .Where(u => u.Id == id)
-                    .Select(u => new { u.Ativo, u.NegocioId, u.Perfil })
+                    .Select(u => new { u.Ativo, u.NegocioId, u.Perfil, u.SessaoVersao })
                     .FirstOrDefaultAsync(ctx.HttpContext.RequestAborted);
 
-                if (atual is null || !atual.Ativo
+                if (atual is null || !atual.Ativo || atual.SessaoVersao != versaoToken
                     || user.FindFirst(Claims.NegocioId)?.Value != atual.NegocioId.ToString()
                     || user.FindFirst(Claims.Perfil)?.Value != atual.Perfil)
                     ctx.Fail("sessao invalida");
             },
         };
     });
+// rotas do sistema do negocio usam "equipe"; token de cliente nao passa
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("gerente", p => p.RequireClaim(Claims.Perfil, Perfis.Gerente));
+    .AddPolicy("gerente", p => p.RequireClaim(Claims.Perfil, Perfis.Gerente))
+    .AddPolicy("equipe", p => p.RequireClaim(Claims.Perfil, Perfis.Gerente, Perfis.Funcionario))
+    .AddPolicy("cliente", p => p.RequireClaim(Claims.Perfil, Perfis.Cliente));
 
 // limite por IP nas rotas de login e cadastro
-var limitePorMinuto = builder.Configuration.GetSection(AuthOpcoes.Secao).Get<AuthOpcoes>()?.LimitePorMinuto ?? 10;
+var authOpcoes = builder.Configuration.GetSection(AuthOpcoes.Secao).Get<AuthOpcoes>() ?? new AuthOpcoes();
+var limitePorMinuto = authOpcoes.LimitePorMinuto;
+
+// No Railway todo acesso chega pelo proxy dele, entao o IP da conexao e o do proxy.
+// O IP real do cliente vem no cabecalho X-Real-IP (so configurado em producao).
+string IpDoCliente(HttpContext http)
+{
+    if (!string.IsNullOrEmpty(authOpcoes.CabecalhoIp)
+        && http.Request.Headers.TryGetValue(authOpcoes.CabecalhoIp, out var ip)
+        && !string.IsNullOrWhiteSpace(ip))
+        return ip.ToString();
+    return http.Connection.RemoteIpAddress?.ToString() ?? "sem-ip";
+}
+
 builder.Services.AddRateLimiter(o =>
 {
     o.AddPolicy("auth", http => RateLimitPartition.GetFixedWindowLimiter(
-        http.Connection.RemoteIpAddress?.ToString() ?? "sem-ip",
+        IpDoCliente(http),
         _ => new FixedWindowRateLimiterOptions { PermitLimit = limitePorMinuto, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     o.OnRejected = async (ctx, ct) =>
     {
@@ -139,10 +172,10 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 
-// no Railway o HTTPS fica no proxy; ele manda o IP real do cliente no X-Forwarded-For
+// no Railway o HTTPS fica no proxy; isso so repassa que a requisicao original era https
 if (!app.Environment.IsDevelopment())
 {
-    var cabecalhos = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto };
+    var cabecalhos = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto };
     cabecalhos.KnownIPNetworks.Clear();
     cabecalhos.KnownProxies.Clear();
     app.UseForwardedHeaders(cabecalhos);

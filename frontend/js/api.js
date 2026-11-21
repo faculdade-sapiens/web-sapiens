@@ -3,8 +3,8 @@
    API.JS — comunicacao com o backend (C#) e sessao do usuario
    ========================================================= */
 
-// Endereco do backend publicado no Railway (preencher depois do deploy).
-const API_PRODUCAO = "";
+// Endereco do backend publicado no Railway
+const API_PRODUCAO = "https://web-sapiens-production.up.railway.app";
 const API_LOCAL = "http://localhost:5169";
 
 const API_URL = ["localhost", "127.0.0.1"].includes(location.hostname) ? API_LOCAL : API_PRODUCAO;
@@ -33,6 +33,9 @@ async function chamarApi(metodo, caminho, corpo) {
 
   const headers = {};
   if (corpo !== undefined) headers["Content-Type"] = "application/json";
+
+  // login e cadastro sempre comecam do zero: descarta qualquer sessao que ja estivesse no navegador
+  if (/^\/api\/auth\/(login|cadastro)/.test(caminho)) encerrarSessao();
   const sessao = lerSessao();
   if (sessao && sessao.token) headers["Authorization"] = "Bearer " + sessao.token;
 
@@ -72,10 +75,24 @@ async function chamarApi(metodo, caminho, corpo) {
 
 // leva para a area certa conforme o perfil que o SERVIDOR devolveu
 function destinoPorPerfil(perfil) {
-  return perfil === "GERENTE" ? "/gerente" : "/funcionario";
+  if (perfil === "GERENTE") return "/gerente";
+  if (perfil === "FUNCIONARIO") return "/funcionario";
+  return "/cliente";
 }
 
 // botao "Sair" do menu lateral
+// avisa o servidor (que invalida o token na hora) e apaga a sessao do navegador
+function sair() {
+  const sessao = lerSessao();
+  encerrarSessao();
+  if (!sessao || !sessao.token || !API_URL) return;
+  fetch(API_URL + "/api/auth/sair", {
+    method: "POST",
+    headers: { "Authorization": "Bearer " + sessao.token },
+    keepalive: true,
+  }).catch(function () { /* sem internet: o token vence sozinho em 30 min */ });
+}
+
 document.addEventListener("click", function (e) {
-  if (e.target.closest(".app-logout-btn")) encerrarSessao();
+  if (e.target.closest(".app-logout-btn, [data-sair]")) sair();
 });

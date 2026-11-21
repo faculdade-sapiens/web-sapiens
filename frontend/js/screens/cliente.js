@@ -345,7 +345,7 @@ const ScreenClientePerfil = {
       '<div class="section-card"><div class="option-list">' + CLIENTE_PERFIL_OPCOES.map(function (o) {
         return '<button type="button" class="option-row" style="width:100%;text-align:left;" data-toast="Funcionalidade disponível em breve."><span class="option-row-left">' + icon(o.icon) + '<span class="label">' + o.label + "</span></span><span class=\"chevron\">" + icon("chevronRight", "icon-sm") + "</span></button>";
       }).join("") + "</div></div>" +
-      '<button type="button" class="btn btn-danger-ghost btn-block" data-href="/">Sair da conta</button>';
+      '<button type="button" class="btn btn-danger-ghost btn-block" data-href="/" data-sair>Sair da conta</button>';
     return clienteShell("perfil", "Meu perfil", null, content);
   }
 };

@@ -6,6 +6,7 @@ public static class Perfis
 {
     public const string Gerente = "GERENTE";
     public const string Funcionario = "FUNCIONARIO";
+    public const string Cliente = "CLIENTE"; // so no token; o cliente fica na tabela cliente
 }
 
 public sealed class Usuario
@@ -22,4 +23,5 @@ public sealed class Usuario
     public short TentativasLoginFalhas { get; set; }
     public DateTime? BloqueadoAte { get; set; }
     public bool DeveTrocarSenha { get; set; }
+    public int SessaoVersao { get; set; }
 }

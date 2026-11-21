@@ -1,6 +1,6 @@
 # Documento de Requisitos — Conecta+
 
-**Versão:** 2.2
+**Versão:** 2.3
 
 ## 1. Visão Geral
 
@@ -59,6 +59,7 @@ Requisitos funcionais descrevem **o que o sistema deve fazer**. Cada requisito a
 | RF16 | O sistema deve exibir uma vitrine pública, acessível por URL própria, sem exigência de login, listando todos os itens de venda ativos do negócio. |
 | RF17 | O sistema deve permitir que o Cliente visualize, na vitrine, os detalhes de um item de venda: nome, descrição, preço e disponibilidade. |
 | RF18 | O sistema deve permitir que o Cliente registre um pedido pela vitrine, informando nome e telefone de contato, sem necessidade de criar conta. |
+| RF18A | O sistema deve permitir que o Cliente, se quiser, crie uma conta informando nome, e-mail, senha e, opcionalmente, telefone, com aceite obrigatório dos termos de uso. Fazer pedido ou agendamento continua sem exigir conta. |
 | RF19 | O sistema deve exibir uma notificação em tela para o Gerente e Funcionários com permissão, em até 10 segundos após o registro de um novo pedido pelo Cliente. |
 | RF20 | O sistema deve permitir que o Gerente ou Funcionário com permissão altere o status de um pedido entre os valores: "Recebido", "Em preparo", "Concluído" e "Cancelado". |
 | RF21 | O sistema deve remover automaticamente da vitrine pública qualquer item de venda cuja quantidade em estoque vinculada seja igual a zero, quando esse item estiver associado a um registro do módulo de Estoque (RF25). |
@@ -211,3 +212,4 @@ Para evitar ambiguidade sobre os limites do sistema, ficam explicitamente **fora
 | 2.0 | — | Escopo nichado exclusivamente para microempreendedores; requisitos reescritos para eliminar ambiguidades e adicionar critérios verificáveis; adição da Matriz de Permissões, Regras de Negócio e seção Fora de Escopo. |
 | 2.1 | — | Adicionado campo de CNPJ (opcional) no cadastro e edição da conta do negócio, com validação de formato e unicidade (RF02A, RF02B, RF02C). |
 | 2.2 | 07/11/2026 | RN02 restrita a agendamentos "Cancelado"; e-mail opcional no agendamento (RF34) e notificação por e-mail só para Clientes que informaram e-mail (RF38). |
+| 2.3 | 21/11/2026 | Adicionado o RF18A: conta opcional do Cliente, com aceite dos termos de uso. |

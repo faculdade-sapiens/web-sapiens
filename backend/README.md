@@ -38,7 +38,9 @@ backend/
 | GET | `/saude` | testa API e banco |
 | POST | `/api/auth/cadastro` | cria negocio + gerente e ja devolve o token (RF01, RF02, RF02A-C) |
 | POST | `/api/auth/login` | entra; bloqueia 15 min depois de 5 senhas erradas (RF03, RF04) |
+| POST | `/api/auth/cadastro-cliente` | conta opcional do cliente (RF18A) |
 | GET | `/api/auth/eu` | dados de quem esta logado (precisa do token) |
+| POST | `/api/auth/sair` | logout: invalida na hora todos os tokens da conta (RF06) |
 
 - Login e cadastro aceitam no maximo 10 tentativas por minuto por IP.
 - O token vale 30 min. Se a pessoa continua usando, a API manda um novo no cabecalho `X-Novo-Token` (RNF09).

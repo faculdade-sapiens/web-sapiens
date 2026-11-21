@@ -11,6 +11,7 @@ public sealed class ConectaDbContext(DbContextOptions<ConectaDbContext> options)
     public DbSet<Negocio> Negocios => Set<Negocio>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<ConfigAgenda> ConfigsAgenda => Set<ConfigAgenda>();
+    public DbSet<Cliente> Clientes => Set<Cliente>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -22,6 +23,7 @@ public sealed class ConectaDbContext(DbContextOptions<ConectaDbContext> options)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Negocio>().ToTable("negocio");
+        modelBuilder.Entity<Cliente>().ToTable("cliente");
 
         modelBuilder.Entity<Usuario>(e =>
         {

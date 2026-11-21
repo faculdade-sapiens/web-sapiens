@@ -54,4 +54,5 @@ public sealed class AuthOpcoes
     public int TokenRedefinicaoMin { get; init; } = 30;  // RF05
     public bool VerificarDominioEmail { get; init; } = true;
     public int LimitePorMinuto { get; init; } = 10;      // login/cadastro por IP
+    public string CabecalhoIp { get; init; } = "";        // em producao: X-Real-IP (Railway)
 }
