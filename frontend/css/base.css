@@ -254,3 +254,9 @@ h1, h2, h3 { line-height: 1.25; font-weight: 700; }
 /* --- Avatar letra --- */
 .avatar { display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); background: var(--blue-primary); color: var(--white); font-weight: 700; flex-shrink: 0; }
 .avatar-circle { border-radius: 50%; }
+
+/* --- erros de formulario --- */
+.field.has-error input, .field.has-error select { border-color: var(--danger); }
+.field.has-error input:focus, .field.has-error select:focus { box-shadow: 0 0 0 3px var(--danger-bg); }
+.field-error { font-size: .8125rem; color: var(--danger); margin-top: 6px; }
+.form-alert { background: var(--danger-bg); color: var(--danger); border-radius: var(--radius-sm); padding: 10px 12px; font-size: .875rem; margin-bottom: 16px; }

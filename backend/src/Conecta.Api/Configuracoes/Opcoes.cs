@@ -16,7 +16,7 @@ public sealed class JwtOpcoes
     public string Secret { get; init; } = "";
     public string Issuer { get; init; } = "conecta-api";
     public string Audience { get; init; } = "conecta-web";
-    public int ExpiracaoMin { get; init; } = 120;
+    public int ExpiracaoMin { get; init; } = 30; // RNF09
 }
 
 public sealed class CorsOpcoes
@@ -53,4 +53,5 @@ public sealed class AuthOpcoes
     public int BloqueioMin { get; init; } = 15;          // RF04
     public int TokenRedefinicaoMin { get; init; } = 30;  // RF05
     public bool VerificarDominioEmail { get; init; } = true;
+    public int LimitePorMinuto { get; init; } = 10;      // login/cadastro por IP
 }

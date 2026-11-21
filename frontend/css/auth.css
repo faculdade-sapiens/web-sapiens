@@ -18,7 +18,7 @@
 .demo-box { background: var(--blue-light); border: 1px solid #BFDBFE; border-radius: var(--radius-sm); padding: 16px; margin-bottom: 20px; }
 .demo-box p.label { font-size: .6875rem; font-weight: 700; color: var(--blue-primary); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 12px; }
 .demo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.demo-btn { padding: 9px 8px; border-radius: var(--radius-sm); font-size: .75rem; font-weight: 600; background: var(--white); border: 1px solid var(--border); color: var(--gray-600); }
+.demo-btn { cursor: pointer; padding: 9px 8px; border-radius: var(--radius-sm); font-size: .75rem; font-weight: 600; background: var(--white); border: 1px solid var(--border); color: var(--gray-600); }
 .demo-btn.active { background: var(--blue-primary); color: var(--white); border-color: var(--blue-primary); }
 
 .profile-picker { max-width: 880px; margin: 0 auto; width: 100%; }

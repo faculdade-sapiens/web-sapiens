@@ -33,18 +33,18 @@ public sealed record Email : IParsable<Email>
 
         if (normalizado.Length == 0)
         {
-            erro = "O e-mail e obrigatorio.";
+            erro = "Informe o e-mail.";
             return false;
         }
         if (normalizado.Length > TamanhoMaximo)
         {
-            erro = $"O e-mail deve ter no maximo {TamanhoMaximo} caracteres.";
+            erro = $"O e-mail pode ter no máximo {TamanhoMaximo} caracteres.";
             return false;
         }
         // nao aceita "ana@localhost", mas aceita acento
         if (!EmailValidator.Validate(normalizado, allowTopLevelDomains: false, allowInternational: true))
         {
-            erro = "O e-mail informado nao e valido.";
+            erro = "Esse e-mail não é válido. Confira se digitou certo.";
             return false;
         }
 
