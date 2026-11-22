@@ -27,8 +27,11 @@ function clientCarrinhoSubtotal() {
 
 const ScreenClienteInicio = {
   render: function () {
+    const sessao = typeof lerSessao === "function" ? lerSessao() : null;
+    const nomeCompleto = (sessao && sessao.usuario && sessao.usuario.nome) || CLIENTE_NOME_DEMO;
+    const primeiroNome = String(nomeCompleto).trim().split(/\s+/)[0] || CLIENTE_NOME_DEMO;
     const content =
-      '<div class="client-greet-card"><p class="greet-sub">Olá,</p><h2>Lucas!</h2><p class="prompt">O que você deseja hoje?</p></div>' +
+      '<div class="client-greet-card"><p class="greet-sub">Olá,</p><h2>' + escapeHtml(primeiroNome) + '!</h2><p class="prompt">O que você deseja hoje?</p></div>' +
       '<div class="shortcut-card">' +
       '<button class="shortcut-btn" data-href="/cliente/cardapio"><span class="icon-wrap">' + icon("bag") + '</span><span class="label">Fazer pedido</span></button>' +
       '<button class="shortcut-btn" data-href="/cliente/pedidos"><span class="icon-wrap">' + icon("clipboard") + '</span><span class="label">Meus pedidos</span></button>' +

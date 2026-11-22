@@ -80,14 +80,16 @@ const ScreenLanding = {
       '<section class="section" id="planos"><div class="section-inner">' +
       '<div class="section-head"><h2>Planos para o seu negócio</h2><p>Comece grátis. Sem cartão de crédito.</p></div>' +
       '<div class="pricing-grid">' +
+      '<div class="price-col"><span class="price-flag" aria-hidden="true" style="visibility:hidden">Maior custo benefício</span>' +
       '<div class="price-card"><h3>Plano Essencial</h3><p class="price-desc">Para pequenos negócios começando a digitalizar sua operação.</p>' +
       '<div class="price-amount"><span class="value">R$ 49</span><span class="period">/mês</span></div>' +
       '<ul class="price-list">' + ["Pedidos ilimitados", "Até 50 clientes", "Estoque básico", "Caixa diário", "1 funcionário"].map(function (t) { return "<li>" + icon("check") + t + "</li>"; }).join("") + "</ul>" +
-      '<button class="btn btn-dark btn-block" data-href="/cadastro">Começar agora</button></div>' +
-      '<div class="price-card featured"><span class="price-flag">Mais popular</span><h3>Plano Completo</h3><p class="price-desc">Para negócios que precisam de mais controle e funcionários.</p>' +
+      '<button class="btn btn-dark btn-block" data-href="/cadastro">Começar agora</button></div></div>' +
+      '<div class="price-col"><span class="price-flag">Maior custo benefício</span>' +
+      '<div class="price-card featured"><h3>Plano Completo</h3><p class="price-desc">Para negócios que precisam de mais controle e funcionários.</p>' +
       '<div class="price-amount"><span class="value">R$ 89</span><span class="period">/mês</span></div>' +
       '<ul class="price-list">' + ["Tudo do Essencial", "Clientes ilimitados", "Múltiplos funcionários", "Relatórios avançados", "Controle de fiado completo"].map(function (t) { return "<li>" + icon("check") + t + "</li>"; }).join("") + "</ul>" +
-      '<button class="btn btn-primary btn-block" data-href="/cadastro">Começar agora</button></div>' +
+      '<button class="btn btn-primary btn-block" data-href="/cadastro">Começar agora</button></div></div>' +
       "</div></div></section>" +
 
       '<section class="section contact-section" id="contato"><div class="contact-inner">' +

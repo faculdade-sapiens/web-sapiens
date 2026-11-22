@@ -115,7 +115,7 @@ const ScreenCadastroCliente = {
       '<div class="field"><label for="cc-email">E-mail</label><input id="cc-email" type="email" placeholder="voce@email.com" autocomplete="email" maxlength="255"></div>' +
       '<div class="field"><label for="cc-senha">Senha</label><input id="cc-senha" type="password" placeholder="Mínimo 8 caracteres, com letras e números" autocomplete="new-password"></div>' +
       '<div class="field"><label for="cc-conf">Confirmar senha</label><input id="cc-conf" type="password" placeholder="Repita a senha" autocomplete="new-password"></div>' +
-      '<div class="field" style="margin-bottom:20px;"><label class="checkbox-row"><input type="checkbox" id="cc-aceito"><span style="font-size:.8125rem;color:var(--text-secondary);">Li e aceito os <span style="color:var(--blue-primary);">termos de uso</span></span></label></div>' +
+      '<div class="field" style="margin-bottom:20px;"><label class="checkbox-row terms-row"><input type="checkbox" id="cc-aceito"><span style="font-size:.8125rem;color:var(--text-secondary);">Li e aceito os <span style="color:var(--blue-primary);">termos de uso</span></span></label></div>' +
       '<button type="button" class="btn btn-primary btn-block" id="cadastroClienteBtn" disabled style="margin-bottom:16px;">Criar minha conta</button>' +
       '<p class="auth-foot">Já possui uma conta? <button type="button" class="btn-link" data-href="/login">Entrar</button></p>' +
       "</div></div></div>"

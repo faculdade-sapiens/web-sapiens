@@ -72,10 +72,13 @@
 .step-card h3 { font-size: 1.0625rem; margin-bottom: 8px; }
 .step-card p { font-size: .875rem; color: var(--text-secondary); line-height: 1.55; }
 
-.pricing-grid { display: grid; gap: 20px; max-width: 720px; margin: 0 auto; }
-.price-card { border-radius: var(--radius-lg); padding: 28px; border: 2px solid var(--gray-200); background: var(--white); }
+.pricing-grid { display: grid; gap: 20px; max-width: 720px; margin: 0 auto; align-items: stretch; }
+.price-col { display: flex; flex-direction: column; }
+.price-col .price-card { flex: 1 1 auto; }
+.price-card { border-radius: var(--radius-lg); padding: 28px; border: 2px solid var(--gray-200); background: var(--white); display: flex; flex-direction: column; }
+.price-card .btn { margin-top: auto; }
 .price-card.featured { border-color: var(--blue-primary); background: var(--blue-light); position: relative; }
-.price-flag { display: inline-block; background: var(--blue-primary); color: var(--white); font-size: .6875rem; font-weight: 700; padding: 5px 12px; border-radius: var(--radius-pill); margin-bottom: 14px; }
+.price-flag { display: block; width: fit-content; margin: 0 auto 12px; text-align: center; background: var(--blue-primary); color: var(--white); font-size: .6875rem; font-weight: 700; padding: 5px 12px; border-radius: var(--radius-pill); }
 .price-card h3 { font-size: 1.125rem; margin-bottom: 6px; }
 .price-desc { font-size: .8125rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
 .price-amount { margin-bottom: 20px; }

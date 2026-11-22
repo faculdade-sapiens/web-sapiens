@@ -36,7 +36,7 @@
 .profile-card-icon { width: 64px; height: 64px; border-radius: var(--radius-md); background: var(--blue-light); color: var(--blue-primary); display: flex; align-items: center; justify-content: center; margin-bottom: 16px; }
 .profile-card h3 { font-size: 1.0625rem; margin-bottom: 8px; }
 .profile-card p { font-size: .8125rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
-.profile-card .btn { width: 100%; }
+.profile-card .btn { width: 100%; margin-top: auto; }
 
 /* --- Responsivo --- */
 @media (min-width: 480px) {

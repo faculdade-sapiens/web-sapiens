@@ -47,7 +47,7 @@ async function chamarApi(metodo, caminho, corpo) {
       body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
     });
   } catch (e) {
-    throw new ErroApi(0, "Não foi possível falar com o servidor. Confira sua internet e tente de novo.");
+    throw new ErroApi(0, "Erro de conexão, tente novamente mais tarde.");
   }
 
   // o servidor manda um token novo quando o atual esta perto de vencer

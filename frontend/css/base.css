@@ -156,6 +156,8 @@ h1, h2, h3 { line-height: 1.25; font-weight: 700; }
 .field-toggle:hover { color: var(--gray-600); }
 .checkbox-row { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .checkbox-row input { width: 16px; height: 16px; accent-color: var(--blue-primary); }
+.field label.terms-row { display: flex; align-items: center; gap: 12px; margin-bottom: 0; }
+.terms-row input { flex: none; margin: 0; }
 
 /* Utilitario: 1 coluna no mobile, 2 colunas a partir de 640px */
 @media (min-width: 640px) {
