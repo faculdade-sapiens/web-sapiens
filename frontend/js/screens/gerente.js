@@ -212,7 +212,7 @@ const ScreenGerenteDetalhesCliente = {
       );
       qs("#gdcConfirmar").addEventListener("click", function () {
         const val = parseFloat(qs("#gdcValor").value || "0");
-        if (!val|| val <= 0) { alert("informe um valor maior que zero."); return; })
+        if (!val|| val <= 0) { alert("informe um valor maior que zero."); return; }
         cliente.saldoDevedor = Math.max(0, cliente.saldoDevedor - val);
         closeModal();
         render();
