@@ -319,7 +319,7 @@ produto.estoqueMinimo = novoMin;
         const nome = qs("#geNomeNovo").value.trim();
 if (!nome) { alert("Informe o nome do produto."); return; }
 const preco = parseFloat(qs("#gePrecoNovo").value || "0");
-if (isNaN(preco) || preco < 0) { alert("Preço não pode ser negativo."); return; }
+if (isNaN(preco) || preco <= 0) { alert("Preço deve ser maior que zero."); return; }
 const qtd = Number(qs("#geQtdNovo").value) || 0;
 if (isNaN(qtd) || qtd < 0) { alert("Quantidade não pode ser negativa."); return; }
 const min = Number(qs("#geMinNovo").value) || 0;
