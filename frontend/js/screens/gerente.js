@@ -254,6 +254,7 @@ const ScreenGerenteFiado = {
           qs("#gfConfirmar").addEventListener("click", function () {
             const val = parseFloat(qs("#gfValor").value || "0");
             if (!val || val <= 0) { alert ("informe um valor maior que zero."); return }
+if (val > cliente.saldoDevedor) { alert("Valor maior que a dívida de R$ " + cliente.saldoDevedor.toFixed(2)); return; }
             cliente.saldoDevedor = Math.max(0, cliente.saldoDevedor - val);
             closeModal();
             render();
