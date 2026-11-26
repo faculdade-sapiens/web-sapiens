@@ -317,13 +317,19 @@ produto.estoqueMinimo = novoMin;
       );
       qs("#geAddSalvar").addEventListener("click", function () {
         const nome = qs("#geNomeNovo").value.trim();
-        if (!nome) return;
-        state.produtos.push({
-          id: nextId(), nome: nome, descricao: "", preco: parseFloat(qs("#gePrecoNovo").value || "0"),
-          categoria: qs("#geCatNovo").value.trim() || "Outros",
-          imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop&auto=format",
-          disponivel: true, quantidade: Number(qs("#geQtdNovo").value) || 0, estoqueMinimo: Number(qs("#geMinNovo").value) || 0,
-        });
+if (!nome) { alert("Informe o nome do produto."); return; }
+const preco = parseFloat(qs("#gePrecoNovo").value || "0");
+if (isNaN(preco) || preco < 0) { alert("Preço não pode ser negativo."); return; }
+const qtd = Number(qs("#geQtdNovo").value) || 0;
+if (isNaN(qtd) || qtd < 0) { alert("Quantidade não pode ser negativa."); return; }
+const min = Number(qs("#geMinNovo").value) || 0;
+if (isNaN(min) || min < 0) { alert("Estoque mínimo não pode ser negativo."); return; }
+state.produtos.push({
+id: nextId(), nome: nome, descricao: "", preco: preco,
+categoria: qs("#geCatNovo").value.trim() || "Outros",
+imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop&auto=format",
+disponivel: true, quantidade: qtd, estoqueMinimo: min,
+});
         closeModal();
         render();
       });
