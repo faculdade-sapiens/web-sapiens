@@ -254,7 +254,6 @@ const ScreenGerenteFiado = {
           qs("#gfConfirmar").addEventListener("click", function () {
             const val = parseFloat(qs("#gfValor").value || "0");
             if (!val || val <= 0) { alert ("informe um valor maior que zero."); return }
-if (val > cliente.saldoDevedor) { alert("Valor maior que a dívida de R$ " + cliente.saldoDevedor.toFixed(2)); return; }
             cliente.saldoDevedor = Math.max(0, cliente.saldoDevedor - val);
             closeModal();
             render();
@@ -295,8 +294,12 @@ const ScreenGerenteEstoque = {
             '<button type="button" class="btn btn-outline btn-block" data-modal-close>Cancelar</button><button type="button" class="btn btn-primary btn-block" id="geEditSalvar">Salvar</button>'
           );
           qs("#geEditSalvar").addEventListener("click", function () {
-            produto.quantidade = Math.max(0, Number(qs("#geEditQtd").value) || 0);
-            produto.estoqueMinimo = Math.max(0, Number(qs("#geEditMin").value) || 0);
+            const novaQtd = Number(qs("#geEditQtd").value);
+const novoMin = Number(qs("#geEditMin").value);
+if (isNaN(novaQtd) || novaQtd < 0) { alert("Quantidade não pode ser negativa."); return; }
+if (isNaN(novoMin) || novoMin < 0) { alert("Estoque mínimo não pode ser negativo."); return; }
+produto.quantidade = novaQtd;
+produto.estoqueMinimo = novoMin;
             closeModal();
             render();
           });
