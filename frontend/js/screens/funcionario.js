@@ -18,13 +18,13 @@ function funcionarioShell(activeId, title, contentHtml) {
 const ScreenFuncionarioInicio = {
   render: function () {
     const emPreparo = state.pedidos.filter(function (p) { return p.status === "Em preparo"; }).length;
-    const prontos = state.pedidos.filter(function (p) { return p.status === "Pronto"; }).length;
-    const pendentes = state.pedidos.filter(function (p) { return p.status !== "Entregue" && p.status !== "Cancelado"; });
+    const concluidos = state.pedidos.filter(function (p) { return p.status === "Concluído"; }).length;
+    const pendentes = state.pedidos.filter(function (p) { return p.status !== "Concluído" && p.status !== "Cancelado"; });
     const content =
       '<div class="screen-head"><h2>Olá, Ana!</h2><p>Bem-vinda ao Restaurante Sabor Caseiro.</p></div>' +
       '<div class="stat-grid stat-grid-3">' +
       '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Pedidos em preparo</span><span class="stat-card-icon">' + icon("clock") + '</span></div><div class="stat-card-value">' + emPreparo + '</div></div>' +
-      '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Pedidos prontos</span><span class="stat-card-icon">' + icon("checkCircle") + '</span></div><div class="stat-card-value">' + prontos + '</div></div>' +
+      '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Pedidos concluídos</span><span class="stat-card-icon">' + icon("checkCircle") + '</span></div><div class="stat-card-value">' + concluidos + '</div></div>' +
       '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Vendas registradas hoje</span><span class="stat-card-icon">' + icon("cash") + '</span></div><div class="stat-card-value">' + state.movimentosCaixa.filter(function (m) { return m.tipo === "Entrada"; }).length + '</div></div>' +
       "</div>" +
       '<div class="card card-pad"><p style="font-weight:700;margin-bottom:14px;">Ações rápidas</p><div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">' +

@@ -61,7 +61,7 @@ const ScreenGerentePedidos = {
       '<div class="screen-head-row"><div class="screen-head"><h2>Pedidos</h2><p>Gerencie os pedidos do dia.</p></div>' +
       '<button type="button" class="btn btn-primary" data-href="/gerente/pedidos/novo">' + icon("plus", "icon-sm") + "Novo pedido</button></div>" +
       '<div class="card"><div style="padding:16px;border-bottom:1px solid var(--gray-100);display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;">' +
-      '<div class="chip-row" id="gpFiltro">' + ["Todos", "Em preparo", "Prontos", "Entregues", "Cancelados"].map(function (f) {
+      '<div class="chip-row" id="gpFiltro">' + ["Todos", "Em preparo", "Concluídos", "Cancelados"].map(function (f) {
         return '<button class="chip' + (f === "Todos" ? " active" : "") + '" data-filtro="' + f + '">' + f + "</button>";
       }).join("") + "</div>" +
       '<input type="search" class="search-input" style="max-width:220px;" id="gpBusca" placeholder="Buscar pedido, cliente..." aria-label="Buscar pedido">' +
@@ -76,8 +76,7 @@ const ScreenGerentePedidos = {
       const filtrados = state.pedidos.filter(function (p) {
         const matchFiltro = filtro === "Todos" ||
           (filtro === "Em preparo" && p.status === "Em preparo") ||
-          (filtro === "Prontos" && p.status === "Pronto") ||
-          (filtro === "Entregues" && p.status === "Entregue") ||
+          (filtro === "Concluídos" && p.status === "Concluído") ||
           (filtro === "Cancelados" && p.status === "Cancelado");
         const matchBusca = p.cliente.toLowerCase().indexOf(busca.toLowerCase()) !== -1 || p.numero.indexOf(busca) !== -1;
         return matchFiltro && matchBusca;

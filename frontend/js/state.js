@@ -24,7 +24,7 @@ function statusBadgeClass(status) {
   switch (status) {
     case "Recebido": return "badge-neutral";
     case "Em preparo": return "badge-warning";
-    case "Pronto": return "badge-info";
+    case "Concluído": return "badge-info";
     case "Entregue": return "badge-success";
     case "Cancelado": return "badge-danger";
     case "Ativo": return "badge-success";

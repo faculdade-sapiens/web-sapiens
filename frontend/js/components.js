@@ -77,7 +77,7 @@ function topbarHtml(title, backHref) {
 
 /* --- Status de pedido (usado por gerente e funcionario) --- */
 function pedidoStatusButtonHtml(pedido) {
-  const podeAvancar = pedido.status !== "Entregue" && pedido.status !== "Cancelado";
+  const podeAvancar = pedido.status !== "Concluído" && pedido.status !== "Cancelado";
   if (!podeAvancar) return badgeHtml(pedido.status);
   return '<button type="button" class="badge ' + statusBadgeClass(pedido.status) + '" data-advance-pedido="' + pedido.id + '" style="border:none;cursor:pointer;" title="Clique para avançar o status">' + escapeHtml(pedido.status) + "</button>";
 }

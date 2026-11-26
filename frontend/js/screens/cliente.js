@@ -227,7 +227,7 @@ const ScreenClientePedidoConfirmado = {
 const ScreenClienteMeusPedidos = {
   render: function () {
     const content =
-      '<div class="tabs-row" id="pedidosFiltro">' + ["Todos", "Em andamento", "Entregues"].map(function (f) {
+      '<div class="tabs-row" id="pedidosFiltro">' + ["Todos", "Em andamento", "Concluído"].map(function (f) {
         return '<button class="chip' + (f === "Todos" ? " active" : "") + '" data-filtro="' + f + '">' + f + "</button>";
       }).join("") + "</div>" +
       '<div class="product-list" id="pedidosLista"></div>';
@@ -238,8 +238,8 @@ const ScreenClienteMeusPedidos = {
     function renderLista(filtro) {
       const pedidos = state.meusPedidosCliente.filter(function (p) {
         if (filtro === "Todos") return true;
-        if (filtro === "Em andamento") return p.status !== "Entregue" && p.status !== "Cancelado";
-        return p.status === "Entregue";
+        if (filtro === "Em andamento") return p.status !== "Concluído" && p.status !== "Cancelado";
+        return p.status === "Concluído";
       });
       lista.innerHTML = pedidos.map(function (p) {
         return '<div class="cart-item" data-href="/cliente/pedidos/' + p.id + '" style="cursor:pointer;"><div class="cart-item-info"><div class="name">' + escapeHtml(p.desc) + '</div><div class="meta">' + p.data + "</div></div>" +

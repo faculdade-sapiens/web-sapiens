@@ -23,9 +23,9 @@ function seedClientes() {
 }
 function seedPedidos() {
   return [
-    { id: 1, numero: "#001", cliente: "João Silva", itens: "X-Tudo + Refri", valor: 31.00, horario: "08:32", status: "Entregue", data: "22/09/2026" },
+    { id: 1, numero: "#001", cliente: "João Silva", itens: "X-Tudo + Refri", valor: 31.00, horario: "08:32", status: "Concluído", data: "22/09/2026" },
     { id: 2, numero: "#002", cliente: "Maria Souza", itens: "2x Marmita", valor: 56.00, horario: "09:15", status: "Em preparo", data: "22/09/2026" },
-    { id: 3, numero: "#003", cliente: "Carlos Lima", itens: "X-Bacon + Batata", valor: 39.00, horario: "09:45", status: "Pronto", data: "22/09/2026" },
+    { id: 3, numero: "#003", cliente: "Carlos Lima", itens: "X-Bacon + Batata", valor: 39.00, horario: "09:45", status: "Concluído", data: "22/09/2026" },
     { id: 4, numero: "#004", cliente: "Ana Paula", itens: "Marmita + Refri", valor: 34.00, horario: "10:02", status: "Recebido", data: "22/09/2026" },
     { id: 5, numero: "#005", cliente: "Pedro Mendes", itens: "3x X-Tudo", valor: 75.00, horario: "10:30", status: "Em preparo", data: "22/09/2026" },
   ];
@@ -48,8 +48,8 @@ function seedMovimentosCaixa() {
 }
 function seedMeusPedidosCliente() {
   return [
-    { id: "d1", data: "12/09/2026", desc: "X-Tudo + Refri", valor: 35.00, status: "Entregue" },
-    { id: "d2", data: "10/09/2026", desc: "Marmita", valor: 28.00, status: "Entregue" },
-    { id: "d3", data: "05/09/2026", desc: "X-Bacon", valor: 32.00, status: "Entregue" },
+    { id: "d1", data: "12/09/2026", desc: "X-Tudo + Refri", valor: 35.00, status: "Concluído" },
+    { id: "d2", data: "10/09/2026", desc: "Marmita", valor: 28.00, status: "Concluído" },
+    { id: "d3", data: "05/09/2026", desc: "X-Bacon", valor: 32.00, status: "Concluído" },
   ];
 }

@@ -57,9 +57,9 @@ const ScreenLanding = {
       '<div class="dash-metric"><div class="dash-metric-label">A receber (fiado)</div><div class="dash-metric-value">R$ 320</div><div class="dash-metric-trend">5 clientes</div></div>' +
       "</div>" +
       '<div class="dash-orders"><div class="dash-orders-title">Pedidos recentes</div>' +
-      '<div class="dash-order-row"><div><div class="dash-order-name">João Silva</div><div class="dash-order-item">X-Tudo + Refri</div></div>' + badgeHtml("Entregue") + "</div>" +
+      '<div class="dash-order-row"><div><div class="dash-order-name">João Silva</div><div class="dash-order-item">X-Tudo + Refri</div></div>' + badgeHtml("Concluído") + "</div>" +
       '<div class="dash-order-row"><div><div class="dash-order-name">Maria Souza</div><div class="dash-order-item">2x Marmita</div></div>' + badgeHtml("Em preparo") + "</div>" +
-      '<div class="dash-order-row"><div><div class="dash-order-name">Carlos Lima</div><div class="dash-order-item">X-Bacon</div></div>' + badgeHtml("Pronto") + "</div>" +
+      '<div class="dash-order-row"><div><div class="dash-order-name">Carlos Lima</div><div class="dash-order-item">X-Bacon</div></div>' + badgeHtml("Concluído") + "</div>" +
       "</div></div></div></div>" +
       "</div></section>" +
 
