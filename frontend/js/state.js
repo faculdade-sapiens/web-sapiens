@@ -25,7 +25,7 @@ function statusBadgeClass(status) {
     case "Recebido": return "badge-neutral";
     case "Em preparo": return "badge-warning";
     case "Concluído": return "badge-info";
-    case "Entregue": return "badge-success";
+    case "Concluído": return "badge-success";
     case "Cancelado": return "badge-danger";
     case "Ativo": return "badge-success";
     case "Inativo": return "badge-neutral";
@@ -34,5 +34,5 @@ function statusBadgeClass(status) {
     default: return "badge-neutral";
   }
 }
-const PROXIMO_STATUS = { "Recebido": "Em preparo", "Em preparo": "Pronto", "Pronto": "Entregue", "Entregue": "Entregue", "Cancelado": "Cancelado" };
-const STATUS_ORDEM = ["Recebido", "Em preparo", "Pronto", "Entregue"];
+const PROXIMO_STATUS = { "Recebido": "Em preparo", "Em preparo": "Concluído", "Concluído": "Concluído", "Cancelado": "Cancelado" };
+const STATUS_ORDEM = ["Recebido", "Em preparo", "Concluído"];
