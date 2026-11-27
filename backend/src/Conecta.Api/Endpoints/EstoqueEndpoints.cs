@@ -27,20 +27,25 @@ public sealed record MovimentarEstoqueRequest(
     int? Quantidade,
     string? Motivo);
 
+// Status: NORMAL, BAIXO ou ESGOTADO. Alerta: true quando BAIXO ou ESGOTADO (RF28).
 public sealed record ItemEstoqueResposta(
     int Id,
     string Nome,
     int QuantidadeAtual,
     string UnidadeMedida,
     string? Categoria,
-    int QuantidadeMinima);
+    int QuantidadeMinima,
+    string Status,
+    bool Alerta);
 
+// RF29: data, tipo, quantidade e responsavel pela acao
 public sealed record MovimentacaoResposta(
     int Id,
     string Tipo,
     int Quantidade,
     string? Motivo,
-    DateTime DataMovimentacao);
+    DateTime DataMovimentacao,
+    string Responsavel);
 
 public sealed record MovimentacaoRegistradaResposta(
     ItemEstoqueResposta Item,
@@ -51,7 +56,9 @@ public sealed record MovimentacaoRegistradaResposta(
 public static class EstoqueEndpoints
 {
     private const int LimiteListagem = 500;
+    private const int LimiteHistorico = 200;
     private const string MsgNomeRepetido = "Já existe um item com esse nome no estoque.";
+    private const string ResponsavelRemovido = "Usuário removido";
 
     public static IEndpointRouteBuilder MapEstoqueEndpoints(this IEndpointRouteBuilder app)
     {
@@ -66,6 +73,7 @@ public static class EstoqueEndpoints
         grupo.MapDelete("/{id:int}", Excluir).RequireAuthorization("gerente");
         // matriz de permissoes: Gerente e Funcionario registram movimentacao
         grupo.MapPost("/{id:int}/movimentacoes", Movimentar);
+        grupo.MapGet("/{id:int}/movimentacoes", Historico);
 
         return app;
     }
@@ -129,18 +137,19 @@ public static class EstoqueEndpoints
         if (categoriaFiltro.Length > 0)
             consulta = consulta.Where(i => i.Categoria != null && i.Categoria.ToLower() == categoriaFiltro);
 
-        // Esgotado: zerado. Baixo: acima de zero e ate a minima (RF28). Normal: o resto.
-        switch (Regras.LimparTexto(status).ToLowerInvariant())
+        // Filtro feito no banco com a mesma regra de StatusEstoque.Calcular:
+        // Esgotado: zerado. Baixo: acima de zero e ate a minima (RF28). Normal: acima da minima.
+        switch (Regras.LimparTexto(status).ToUpperInvariant())
         {
             case "":
                 break;
-            case "esgotado":
+            case StatusEstoque.Esgotado:
                 consulta = consulta.Where(i => i.QuantidadeAtual == 0);
                 break;
-            case "baixo":
+            case StatusEstoque.Baixo:
                 consulta = consulta.Where(i => i.QuantidadeAtual > 0 && i.QuantidadeAtual <= i.QuantidadeMinima);
                 break;
-            case "normal":
+            case StatusEstoque.Normal:
                 consulta = consulta.Where(i => i.QuantidadeAtual > 0 && i.QuantidadeAtual > i.QuantidadeMinima);
                 break;
             default:
@@ -153,10 +162,9 @@ public static class EstoqueEndpoints
         var itens = await consulta
             .OrderBy(i => i.Nome)
             .Take(LimiteListagem)
-            .Select(i => new ItemEstoqueResposta(i.Id, i.Nome, i.QuantidadeAtual, i.UnidadeMedida, i.Categoria, i.QuantidadeMinima))
             .ToListAsync(ct);
 
-        return Results.Ok(itens);
+        return Results.Ok(itens.Select(ParaResposta));
     }
 
     private static async Task<IResult> Obter(int id, HttpContext http, ConectaDbContext db, CancellationToken ct)
@@ -279,9 +287,43 @@ public static class EstoqueEndpoints
         var item = await doItem.AsNoTracking().FirstAsync(ct);
         await transacao.CommitAsync(ct);
 
+        // o nome vem do token (o mesmo usuario que acabou de registrar)
+        var responsavel = http.User.Identity?.Name ?? "";
         return Results.Created(
             $"/api/estoque/{id}/movimentacoes",
-            new MovimentacaoRegistradaResposta(ParaResposta(item), ParaResposta(movimentacao)));
+            new MovimentacaoRegistradaResposta(ParaResposta(item), ParaResposta(movimentacao, responsavel)));
+    }
+
+    // RF29: historico do item, da mais recente para a mais antiga
+    private static async Task<IResult> Historico(int id, HttpContext http, ConectaDbContext db, CancellationToken ct)
+    {
+        var negocioId = http.User.LerNegocioId();
+
+        // a movimentacao nao tem negocio_id: o dono e conferido pelo item
+        var itemExiste = await db.ItensEstoque.AnyAsync(i => i.Id == id && i.NegocioId == negocioId, ct);
+        if (!itemExiste) return ItemNaoEncontrado();
+
+        var linhas = await db.MovimentacoesEstoque.AsNoTracking()
+            .Where(m => m.ItemEstoqueId == id)
+            .OrderByDescending(m => m.DataMovimentacao)
+            .ThenByDescending(m => m.Id)
+            .Take(LimiteHistorico)
+            .Select(m => new
+            {
+                m.Id,
+                m.Tipo,
+                m.Quantidade,
+                m.Motivo,
+                m.DataMovimentacao,
+                NomeUsuario = m.Usuario != null ? m.Usuario.Nome : null,
+            })
+            .ToListAsync(ct);
+
+        // usuario_id vira null se a conta for apagada (on delete set null)
+        var historico = linhas.Select(m => new MovimentacaoResposta(
+            m.Id, m.Tipo, m.Quantidade, m.Motivo, m.DataMovimentacao, m.NomeUsuario ?? ResponsavelRemovido));
+
+        return Results.Ok(historico);
     }
 
     // Campos comuns do cadastro e da edicao. Os erros vao para o dicionario, um por campo.
@@ -335,8 +377,10 @@ public static class EstoqueEndpoints
         Results.Problem("Item não encontrado no estoque.", statusCode: StatusCodes.Status404NotFound);
 
     private static ItemEstoqueResposta ParaResposta(ItemEstoque i) =>
-        new(i.Id, i.Nome, i.QuantidadeAtual, i.UnidadeMedida, i.Categoria, i.QuantidadeMinima);
+        new(i.Id, i.Nome, i.QuantidadeAtual, i.UnidadeMedida, i.Categoria, i.QuantidadeMinima,
+            StatusEstoque.Calcular(i.QuantidadeAtual, i.QuantidadeMinima),
+            StatusEstoque.TemAlerta(i.QuantidadeAtual, i.QuantidadeMinima));
 
-    private static MovimentacaoResposta ParaResposta(MovimentacaoEstoque m) =>
-        new(m.Id, m.Tipo, m.Quantidade, m.Motivo, m.DataMovimentacao);
+    private static MovimentacaoResposta ParaResposta(MovimentacaoEstoque m, string responsavel) =>
+        new(m.Id, m.Tipo, m.Quantidade, m.Motivo, m.DataMovimentacao, responsavel);
 }

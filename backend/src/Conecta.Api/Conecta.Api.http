@@ -115,3 +115,15 @@ Content-Type: application/json
   "quantidade": 999999,
   "motivo": "Ajuste"
 }
+
+### Estoque: historico de movimentacoes do item (RF29). Mais recente primeiro
+GET {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+
+### Estoque: historico de item que nao existe (espera 404)
+GET {{host}}/api/estoque/99999/movimentacoes
+Authorization: Bearer {{token}}
+
+### Estoque: status invalido no filtro (espera 400 no campo status)
+GET {{host}}/api/estoque?status=critico
+Authorization: Bearer {{token}}
