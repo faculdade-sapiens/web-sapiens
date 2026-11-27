@@ -68,7 +68,7 @@ const ScreenClienteCardapio = {
       const filtrados = state.produtos.filter(function (p) {
         const matchCat = categoria === "Todos" || p.categoria === categoria;
         const matchBusca = p.nome.toLowerCase().indexOf(busca.toLowerCase()) !== -1;
-        return matchCat && matchBusca;
+        return matchCat && matchBusca && p.quantidade > 0;
       });
       lista.innerHTML = filtrados.map(function (p) {
         return '<button class="product-card" data-href="/cliente/produto/' + p.id + '">' +
