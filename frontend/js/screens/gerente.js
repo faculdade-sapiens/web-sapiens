@@ -129,10 +129,19 @@ const ScreenGerenteNovoPedido = {
       });
     });
     qs("#npSubmit").addEventListener("click", function () {
-      const clienteId = qs("#npCliente").value;
-      const produto = getProduto(qs("#npProduto").value);
-      const qtd = Math.max(1, Number(qs("#npQtd").value) || 1);
-      const cliente = clienteId ? getCliente(clienteId) : null;
+      const cliente = getCliente(qs("#npCliente").value);
+const produto = getProduto(qs("#npProduto").value);
+const qtd = Math.max(1, Number(qs("#npQtd").value) || 1);
+const clienteId = getClienteId(qs("#npCliente").value);
+if (!produto || !produto.nome || !produto.nome.trim()) {
+  alert("Selecione um produto para o pedido");
+  return;
+}
+
+if (!qtd || qtd <= 0) {
+  alert("A quantidade deve ser maior que zero");
+  return;
+}
       const valor = produto.preco * qtd;
       const numero = "#" + String(state.pedidos.length + 1).padStart(3, "0");
       const novoPedido = {
