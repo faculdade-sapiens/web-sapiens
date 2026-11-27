@@ -21,6 +21,12 @@ public sealed record EditarItemEstoqueRequest(
     string? Categoria,
     int? QuantidadeMinima);
 
+// RF24 (entrada) e RF27 (saida). A data e o responsavel vem do servidor, nao do corpo.
+public sealed record MovimentarEstoqueRequest(
+    string? Tipo,
+    int? Quantidade,
+    string? Motivo);
+
 public sealed record ItemEstoqueResposta(
     int Id,
     string Nome,
@@ -28,6 +34,17 @@ public sealed record ItemEstoqueResposta(
     string UnidadeMedida,
     string? Categoria,
     int QuantidadeMinima);
+
+public sealed record MovimentacaoResposta(
+    int Id,
+    string Tipo,
+    int Quantidade,
+    string? Motivo,
+    DateTime DataMovimentacao);
+
+public sealed record MovimentacaoRegistradaResposta(
+    ItemEstoqueResposta Item,
+    MovimentacaoResposta Movimentacao);
 
 // Modulo Central de Controle de Estoque (RF22 a RF30).
 // O negocio sempre vem do token (negocio_id): nunca do corpo nem da URL.
@@ -47,6 +64,8 @@ public static class EstoqueEndpoints
         grupo.MapPut("/{id:int}", Editar);
         // matriz de permissoes: so o Gerente exclui item de estoque
         grupo.MapDelete("/{id:int}", Excluir).RequireAuthorization("gerente");
+        // matriz de permissoes: Gerente e Funcionario registram movimentacao
+        grupo.MapPost("/{id:int}/movimentacoes", Movimentar);
 
         return app;
     }
@@ -191,6 +210,80 @@ public static class EstoqueEndpoints
         return apagados == 0 ? ItemNaoEncontrado() : Results.NoContent();
     }
 
+    // RF24 (entrada) e RF27 (saida, com motivo obrigatorio).
+    // A quantidade muda e a movimentacao e gravada na mesma transacao: ou as duas acontecem, ou nenhuma.
+    private static async Task<IResult> Movimentar(
+        int id,
+        MovimentarEstoqueRequest req,
+        HttpContext http,
+        ConectaDbContext db,
+        CancellationToken ct)
+    {
+        var erros = new Dictionary<string, string[]>();
+        void Erro(string campo, string? msg) { if (msg is not null) erros[campo] = [msg]; }
+
+        var tipo = Regras.NormalizarTipoMovimentacao(req.Tipo, out var erroTipo);
+        Erro("tipo", erroTipo);
+
+        if (req.Quantidade is null) Erro("quantidade", "Informe a quantidade.");
+        else Erro("quantidade", Regras.ValidarQuantidadeMovimentacao(req.Quantidade.Value));
+
+        // sem tipo valido nao da para saber se o motivo e obrigatorio
+        var motivo = Regras.LimparTexto(req.Motivo);
+        if (tipo is not null) Erro("motivo", Regras.ValidarMotivo(tipo, motivo));
+
+        if (erros.Count > 0) return Results.ValidationProblem(erros);
+
+        var quantidade = req.Quantidade!.Value;
+        var negocioId = http.User.LerNegocioId();
+
+        await using var transacao = await db.Database.BeginTransactionAsync(ct);
+
+        // Atualiza direto no banco, com a condicao no WHERE: se duas pessoas tirarem do mesmo
+        // item ao mesmo tempo, a segunda ve o valor ja atualizado e nunca deixa o estoque negativo.
+        var doItem = db.ItensEstoque.Where(i => i.Id == id && i.NegocioId == negocioId);
+        var alterados = tipo == TiposMovimentacao.Saida
+            ? await doItem
+                .Where(i => i.QuantidadeAtual >= quantidade)
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.QuantidadeAtual, i => i.QuantidadeAtual - quantidade), ct)
+            : await doItem
+                .Where(i => i.QuantidadeAtual <= Regras.QuantidadeMaxima - quantidade)
+                .ExecuteUpdateAsync(s => s.SetProperty(i => i.QuantidadeAtual, i => i.QuantidadeAtual + quantidade), ct);
+
+        if (alterados == 0)
+        {
+            // nada mudou: ou o item nao existe (ou e de outro negocio), ou a quantidade nao permite
+            var disponivel = await doItem.Select(i => (int?)i.QuantidadeAtual).FirstOrDefaultAsync(ct);
+            if (disponivel is null) return ItemNaoEncontrado();
+
+            var mensagem = tipo == TiposMovimentacao.Saida
+                ? $"Não há quantidade suficiente em estoque. Disponível agora: {disponivel}."
+                : "Essa entrada passaria do limite máximo do estoque.";
+            return Results.ValidationProblem(
+                new Dictionary<string, string[]> { ["quantidade"] = [mensagem] },
+                statusCode: StatusCodes.Status409Conflict);
+        }
+
+        var movimentacao = new MovimentacaoEstoque
+        {
+            ItemEstoqueId = id,
+            UsuarioId = http.User.LerUsuarioId(), // responsavel pela acao (RF29)
+            Tipo = tipo!,
+            Quantidade = quantidade,
+            Motivo = motivo.Length == 0 ? null : motivo,
+            DataMovimentacao = DateTime.UtcNow, // data do servidor: ninguem registra com data falsa
+        };
+        db.MovimentacoesEstoque.Add(movimentacao);
+        await db.SaveChangesAsync(ct);
+
+        var item = await doItem.AsNoTracking().FirstAsync(ct);
+        await transacao.CommitAsync(ct);
+
+        return Results.Created(
+            $"/api/estoque/{id}/movimentacoes",
+            new MovimentacaoRegistradaResposta(ParaResposta(item), ParaResposta(movimentacao)));
+    }
+
     // Campos comuns do cadastro e da edicao. Os erros vao para o dicionario, um por campo.
     private static CamposItem ValidarCampos(
         string? nomeBruto,
@@ -243,4 +336,7 @@ public static class EstoqueEndpoints
 
     private static ItemEstoqueResposta ParaResposta(ItemEstoque i) =>
         new(i.Id, i.Nome, i.QuantidadeAtual, i.UnidadeMedida, i.Categoria, i.QuantidadeMinima);
+
+    private static MovimentacaoResposta ParaResposta(MovimentacaoEstoque m) =>
+        new(m.Id, m.Tipo, m.Quantidade, m.Motivo, m.DataMovimentacao);
 }

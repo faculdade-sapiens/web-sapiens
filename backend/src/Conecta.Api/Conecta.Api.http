@@ -72,3 +72,46 @@ Content-Type: application/json
 ### Estoque: excluir item (RF23). So Gerente: Funcionario recebe 403
 DELETE {{host}}/api/estoque/1
 Authorization: Bearer {{token}}
+
+### Estoque: entrada de quantidade (RF24). Motivo opcional
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "entrada",
+  "quantidade": 10,
+  "motivo": "Compra do fornecedor"
+}
+
+### Estoque: saida de quantidade (RF27). Motivo obrigatorio (perda, descarte ou ajuste)
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "saida",
+  "quantidade": 3,
+  "motivo": "Descarte: embalagem rasgada"
+}
+
+### Estoque: saida sem motivo (espera 400 no campo motivo)
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "saida",
+  "quantidade": 3
+}
+
+### Estoque: saida maior que o disponivel (espera 409 com a quantidade disponivel)
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "saida",
+  "quantidade": 999999,
+  "motivo": "Ajuste"
+}
