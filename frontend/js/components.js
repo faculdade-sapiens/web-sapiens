@@ -91,8 +91,12 @@ function bindPedidoStatusButtons() {
   });
 }
 /* --- Status de estoque (usado por gerente e funcionario) --- */
-function estoqueStatusInfo(p) {
-  if (p.quantidade === 0) return { label: "Sem estoque", cls: "badge-danger" };
-  if (p.quantidade <= p.estoqueMinimo) return { label: "Estoque baixo", cls: "badge-warning" };
-  return { label: "Normal", cls: "badge-success" };
+// O status vem calculado pelo servidor (StatusEstoque.cs): NORMAL, BAIXO ou ESGOTADO (RF28).
+const ESTOQUE_STATUS_INFO = {
+  ESGOTADO: { label: "Sem estoque", cls: "badge-danger" },
+  BAIXO: { label: "Estoque baixo", cls: "badge-warning" },
+  NORMAL: { label: "Normal", cls: "badge-success" },
+};
+function estoqueStatusInfo(item) {
+  return ESTOQUE_STATUS_INFO[item.status] || ESTOQUE_STATUS_INFO.NORMAL;
 }

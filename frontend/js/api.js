@@ -96,3 +96,24 @@ function sair() {
 document.addEventListener("click", function (e) {
   if (e.target.closest(".app-logout-btn, [data-sair]")) sair();
 });
+
+/* --- Estoque (RF22 a RF30) ---
+   O negocio vem do token: nenhuma dessas chamadas envia negocio_id. */
+const ESTOQUE_URL = "/api/estoque";
+
+// filtros: { nome, categoria, status } (todos opcionais). status: "normal", "baixo" ou "esgotado"
+function listarEstoque(filtros) {
+  const params = new URLSearchParams();
+  Object.keys(filtros || {}).forEach(function (k) {
+    const v = filtros[k];
+    if (v !== undefined && v !== null && String(v).trim() !== "") params.set(k, String(v).trim());
+  });
+  const busca = params.toString();
+  return chamarApi("GET", ESTOQUE_URL + (busca ? "?" + busca : ""));
+}
+function criarItemEstoque(dados) { return chamarApi("POST", ESTOQUE_URL, dados); }
+function editarItemEstoque(id, dados) { return chamarApi("PUT", ESTOQUE_URL + "/" + Number(id), dados); }
+function excluirItemEstoque(id) { return chamarApi("DELETE", ESTOQUE_URL + "/" + Number(id)); }
+// dados: { tipo: "entrada" | "saida", quantidade, motivo }
+function movimentarEstoque(id, dados) { return chamarApi("POST", ESTOQUE_URL + "/" + Number(id) + "/movimentacoes", dados); }
+function historicoEstoque(id) { return chamarApi("GET", ESTOQUE_URL + "/" + Number(id) + "/movimentacoes"); }

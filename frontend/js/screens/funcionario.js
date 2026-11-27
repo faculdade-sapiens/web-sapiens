@@ -76,19 +76,7 @@ const ScreenFuncionarioClientes = {
   }
 };
 
-const ScreenFuncionarioEstoque = {
-  render: function () {
-    const content =
-      '<div class="screen-head"><h2>Estoque</h2></div>' +
-      '<div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Produto</th><th>Categoria</th><th>Quantidade</th><th>Status</th></tr></thead><tbody>' +
-      state.produtos.map(function (p) {
-        const info = estoqueStatusInfo(p);
-        return "<tr><td>" + escapeHtml(p.nome) + "</td><td>" + escapeHtml(p.categoria) + "</td><td style=\"font-weight:600;\">" + p.quantidade + "</td><td>" + badgeHtml(info.label, info.cls) + "</td></tr>";
-      }).join("") +
-      "</tbody></table></div></div>";
-    return funcionarioShell("estoque", "Estoque", content);
-  }
-};
+// ScreenFuncionarioEstoque fica em screens/estoque.js (tela ligada a API, igual para Gerente e Funcionario)
 
 const ScreenFuncionarioCaixa = {
   render: function () {
