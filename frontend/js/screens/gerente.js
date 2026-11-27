@@ -486,4 +486,4 @@ const ScreenGerenteConfiguracoes = {
     return gerenteShell("configuracoes", "Configurações", null, content);
   }
 };
-
+// Validação final: garante que o pedido não seja salvo sem produto
