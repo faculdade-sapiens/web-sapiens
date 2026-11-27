@@ -13,6 +13,14 @@ public sealed record CriarItemEstoqueRequest(
     string? Categoria,
     int? QuantidadeMinima);
 
+// A quantidade atual nao entra aqui: ela so muda por entrada ou saida (RF24, RF27),
+// para todo ajuste ficar no historico (RF29).
+public sealed record EditarItemEstoqueRequest(
+    string? Nome,
+    string? UnidadeMedida,
+    string? Categoria,
+    int? QuantidadeMinima);
+
 public sealed record ItemEstoqueResposta(
     int Id,
     string Nome,
@@ -36,6 +44,9 @@ public static class EstoqueEndpoints
         grupo.MapGet("/", Listar);
         grupo.MapGet("/{id:int}", Obter);
         grupo.MapPost("/", Cadastrar);
+        grupo.MapPut("/{id:int}", Editar);
+        // matriz de permissoes: so o Gerente exclui item de estoque
+        grupo.MapDelete("/{id:int}", Excluir).RequireAuthorization("gerente");
 
         return app;
     }
@@ -48,39 +59,27 @@ public static class EstoqueEndpoints
         CancellationToken ct)
     {
         var erros = new Dictionary<string, string[]>();
-        void Erro(string campo, string? msg) { if (msg is not null) erros[campo] = [msg]; }
-
-        var nome = Regras.LimparTexto(req.Nome);
-        Erro("nome", Regras.ValidarNomeItem(nome));
-
-        var unidade = Regras.NormalizarUnidade(req.UnidadeMedida, out var erroUnidade);
-        Erro("unidadeMedida", erroUnidade);
-
-        var categoria = Regras.LimparTexto(req.Categoria);
-        Erro("categoria", Regras.ValidarCategoriaEstoque(categoria));
+        var campos = ValidarCampos(req.Nome, req.UnidadeMedida, req.Categoria, req.QuantidadeMinima, erros);
 
         // sem valor = 0, igual ao default do banco
         var quantidadeAtual = req.QuantidadeAtual ?? 0;
-        var quantidadeMinima = req.QuantidadeMinima ?? 0;
-        Erro("quantidadeAtual", Regras.ValidarQuantidadeAtual(quantidadeAtual));
-        Erro("quantidadeMinima", Regras.ValidarQuantidadeMinima(quantidadeMinima)); // RN04
+        var erroQuantidade = Regras.ValidarQuantidadeAtual(quantidadeAtual);
+        if (erroQuantidade is not null) erros["quantidadeAtual"] = [erroQuantidade];
 
         if (erros.Count > 0) return Results.ValidationProblem(erros);
 
         var negocioId = http.User.LerNegocioId();
-        if (await NomeEmUso(db, negocioId, nome, ct))
-            return Results.ValidationProblem(
-                new Dictionary<string, string[]> { ["nome"] = [MsgNomeRepetido] },
-                statusCode: StatusCodes.Status409Conflict);
+        if (await NomeEmUso(db, negocioId, campos.Nome, ignorarId: null, ct))
+            return NomeRepetido();
 
         var item = new ItemEstoque
         {
             NegocioId = negocioId,
-            Nome = nome,
+            Nome = campos.Nome,
             QuantidadeAtual = quantidadeAtual,
-            UnidadeMedida = unidade!,
-            Categoria = categoria.Length == 0 ? null : categoria,
-            QuantidadeMinima = quantidadeMinima,
+            UnidadeMedida = campos.Unidade,
+            Categoria = campos.Categoria,
+            QuantidadeMinima = campos.QuantidadeMinima,
         };
         db.ItensEstoque.Add(item);
         await db.SaveChangesAsync(ct);
@@ -151,16 +150,93 @@ public static class EstoqueEndpoints
         return item is null ? ItemNaoEncontrado() : Results.Ok(ParaResposta(item));
     }
 
-    private static Task<bool> NomeEmUso(ConectaDbContext db, int negocioId, string nome, CancellationToken ct)
+    // RF23: edicao. Envia o item inteiro (como no cadastro); campo vazio volta ao padrao.
+    private static async Task<IResult> Editar(
+        int id,
+        EditarItemEstoqueRequest req,
+        HttpContext http,
+        ConectaDbContext db,
+        CancellationToken ct)
+    {
+        var erros = new Dictionary<string, string[]>();
+        var campos = ValidarCampos(req.Nome, req.UnidadeMedida, req.Categoria, req.QuantidadeMinima, erros);
+        if (erros.Count > 0) return Results.ValidationProblem(erros);
+
+        var negocioId = http.User.LerNegocioId();
+        var item = await db.ItensEstoque.FirstOrDefaultAsync(i => i.Id == id && i.NegocioId == negocioId, ct);
+        if (item is null) return ItemNaoEncontrado();
+
+        // o proprio item pode manter o nome (ou so mudar maiusculas)
+        if (await NomeEmUso(db, negocioId, campos.Nome, ignorarId: item.Id, ct))
+            return NomeRepetido();
+
+        item.Nome = campos.Nome;
+        item.UnidadeMedida = campos.Unidade;
+        item.Categoria = campos.Categoria;
+        item.QuantidadeMinima = campos.QuantidadeMinima;
+        await db.SaveChangesAsync(ct);
+
+        return Results.Ok(ParaResposta(item));
+    }
+
+    // RF23: exclusao, so Gerente. As movimentacoes do item caem junto (on delete cascade)
+    // e um item de venda ligado a ele fica sem ligacao (on delete set null), pelo schema.sql.
+    private static async Task<IResult> Excluir(int id, HttpContext http, ConectaDbContext db, CancellationToken ct)
+    {
+        var negocioId = http.User.LerNegocioId();
+        var apagados = await db.ItensEstoque
+            .Where(i => i.Id == id && i.NegocioId == negocioId)
+            .ExecuteDeleteAsync(ct);
+
+        return apagados == 0 ? ItemNaoEncontrado() : Results.NoContent();
+    }
+
+    // Campos comuns do cadastro e da edicao. Os erros vao para o dicionario, um por campo.
+    private static CamposItem ValidarCampos(
+        string? nomeBruto,
+        string? unidadeBruta,
+        string? categoriaBruta,
+        int? quantidadeMinimaBruta,
+        Dictionary<string, string[]> erros)
+    {
+        void Erro(string campo, string? msg) { if (msg is not null) erros[campo] = [msg]; }
+
+        var nome = Regras.LimparTexto(nomeBruto);
+        Erro("nome", Regras.ValidarNomeItem(nome));
+
+        var unidade = Regras.NormalizarUnidade(unidadeBruta, out var erroUnidade);
+        Erro("unidadeMedida", erroUnidade);
+
+        var categoria = Regras.LimparTexto(categoriaBruta);
+        Erro("categoria", Regras.ValidarCategoriaEstoque(categoria));
+
+        // sem valor = 0, igual ao default do banco
+        var quantidadeMinima = quantidadeMinimaBruta ?? 0;
+        Erro("quantidadeMinima", Regras.ValidarQuantidadeMinima(quantidadeMinima)); // RN04
+
+        return new CamposItem(nome, unidade ?? "", categoria.Length == 0 ? null : categoria, quantidadeMinima);
+    }
+
+    private sealed record CamposItem(string Nome, string Unidade, string? Categoria, int QuantidadeMinima);
+
+    private static Task<bool> NomeEmUso(ConectaDbContext db, int negocioId, string nome, int? ignorarId, CancellationToken ct)
     {
         var nomeMinusculo = nome.ToLower();
-        return db.ItensEstoque.AnyAsync(i => i.NegocioId == negocioId && i.Nome.ToLower() == nomeMinusculo, ct);
+        return db.ItensEstoque.AnyAsync(i =>
+            i.NegocioId == negocioId
+            && i.Nome.ToLower() == nomeMinusculo
+            && (ignorarId == null || i.Id != ignorarId), ct);
     }
 
     // % e _ sao curingas no ILIKE. A barra e o escape, passado explicitamente no ILike:
     // sem ele o Npgsql gera ESCAPE '' e a busca por "50%" nao funcionaria.
     private static string EscaparLike(string texto) =>
         texto.Replace(@"\", @"\\").Replace("%", @"\%").Replace("_", @"\_");
+
+    private static IResult NomeRepetido() =>
+        Results.ValidationProblem(
+            new Dictionary<string, string[]> { ["nome"] = [MsgNomeRepetido] },
+            statusCode: StatusCodes.Status409Conflict);
 
     private static IResult ItemNaoEncontrado() =>
         Results.Problem("Item não encontrado no estoque.", statusCode: StatusCodes.Status404NotFound);

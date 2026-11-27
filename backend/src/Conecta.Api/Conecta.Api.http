@@ -56,3 +56,19 @@ Authorization: Bearer {{token}}
 ### Estoque: buscar um item pelo id (404 se nao existir ou for de outro negocio)
 GET {{host}}/api/estoque/1
 Authorization: Bearer {{token}}
+
+### Estoque: editar item (RF23). Envie o item inteiro; a quantidade atual nao muda por aqui
+PUT {{host}}/api/estoque/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Farinha de trigo integral",
+  "unidadeMedida": "kg",
+  "categoria": "Insumos",
+  "quantidadeMinima": 8
+}
+
+### Estoque: excluir item (RF23). So Gerente: Funcionario recebe 403
+DELETE {{host}}/api/estoque/1
+Authorization: Bearer {{token}}
