@@ -132,7 +132,6 @@ const ScreenGerenteNovoPedido = {
       const cliente = getCliente(qs("#npCliente").value);
 const produto = getProduto(qs("#npProduto").value);
 const qtd = Math.max(1, Number(qs("#npQtd").value) || 1);
-const clienteId = getClienteId(qs("#npCliente").value);
 if (!produto || !produto.nome || !produto.nome.trim()) {
   alert("Selecione um produto para o pedido");
   return;
