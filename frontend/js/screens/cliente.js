@@ -25,10 +25,52 @@ function clientCarrinhoSubtotal() {
   return state.carrinho.reduce(function (s, i) { return s + getProduto(i.produtoId).preco * i.quantidade; }, 0);
 }
 
+/* --- conta real x demonstracao ---
+   Conta real = sessao de CLIENTE devolvida pelo servidor (login ou cadastro).
+   Sem essa sessao (botoes "Veja a demonstracao") a area usa os dados de exemplo.
+   O banco ainda nao liga pedido a cliente (pedido nao tem cliente_id) e nao tem
+   fiado, entao a conta real comeca sem pedidos e sem saldo devedor: so aparecem
+   os pedidos que ela mesma fizer.
+   TODO(backend): buscar pedidos e saldo da conta na API quando existirem no banco. */
+function clienteContaReal() {
+  const sessao = typeof lerSessao === "function" ? lerSessao() : null;
+  if (!sessao || !sessao.token || !sessao.usuario || sessao.usuario.perfil !== "CLIENTE") return null;
+  return sessao.usuario;
+}
+function clienteNomeAtual() {
+  const conta = clienteContaReal();
+  return (conta && conta.nome) || CLIENTE_NOME_DEMO;
+}
+
+// pedidos de cada conta real, separados pelo id do cliente (nunca mistura com a demonstracao)
+const pedidosPorContaCliente = {};
+function clienteMeusPedidos() {
+  const conta = clienteContaReal();
+  if (!conta) return state.meusPedidosCliente;
+  const ids = pedidosPorContaCliente[conta.id] || [];
+  // o status vem do pedido em si, para acompanhar o que o gerente mudar
+  return ids.map(getPedido).filter(Boolean).map(function (p) {
+    return { id: p.id, data: p.data, desc: p.itens, valor: p.valor, status: p.status };
+  });
+}
+function clienteRegistrarPedido(pedido) {
+  const conta = clienteContaReal();
+  if (!conta) {
+    state.meusPedidosCliente.unshift({ id: pedido.id, data: pedido.data, desc: pedido.itens, valor: pedido.valor, status: pedido.status });
+    return;
+  }
+  (pedidosPorContaCliente[conta.id] = pedidosPorContaCliente[conta.id] || []).unshift(pedido.id);
+}
+function clientePedidoEhMeu(id) {
+  return clienteMeusPedidos().some(function (p) { return String(p.id) === String(id); });
+}
+function semPedidosHtml(texto) {
+  return '<p style="text-align:center;color:var(--text-secondary);padding:24px 0;">' + texto + "</p>";
+}
+
 const ScreenClienteInicio = {
   render: function () {
-    const sessao = typeof lerSessao === "function" ? lerSessao() : null;
-    const nomeCompleto = (sessao && sessao.usuario && sessao.usuario.nome) || CLIENTE_NOME_DEMO;
+    const nomeCompleto = clienteNomeAtual();
     const primeiroNome = String(nomeCompleto).trim().split(/\s+/)[0] || CLIENTE_NOME_DEMO;
     const content =
       '<div class="client-greet-card"><p class="greet-sub">Olá,</p><h2>' + escapeHtml(primeiroNome) + '!</h2><p class="prompt">O que você deseja hoje?</p></div>' +
@@ -40,10 +82,10 @@ const ScreenClienteInicio = {
       '<div class="promo-card"><p class="tag">Promoção do dia</p><p class="title">Seu prato favorito, agora mais fácil.</p>' +
       '<button type="button" class="btn btn-white btn-sm" data-href="/cliente/cardapio">Ver cardápio</button></div>' +
       '<div class="section-card"><div class="section-card-head">Últimos pedidos</div>' +
-      state.meusPedidosCliente.slice(0, 3).map(function (p) {
+      (clienteMeusPedidos().slice(0, 3).map(function (p) {
         return '<div class="order-mini-row"><div><div style="font-weight:600;font-size:.875rem;">' + escapeHtml(p.desc) + '</div><div style="font-size:.75rem;color:var(--text-secondary);">' + p.data + "</div></div>" +
           '<div style="text-align:right;"><div style="font-weight:700;font-size:.875rem;">' + formatBRL(p.valor) + "</div>" + badgeHtml(p.status) + "</div></div>";
-      }).join("") +
+      }).join("") || semPedidosHtml("Você ainda não fez nenhum pedido.")) +
       "</div>";
     return clienteShell("inicio", "Início", null, content);
   }
@@ -181,7 +223,7 @@ const ScreenClienteCarrinho = {
         const novoPedido = {
           id: nextId(),
           numero: "#" + String(state.pedidos.length + 1).padStart(3, "0"),
-          cliente: CLIENTE_NOME_DEMO,
+          cliente: clienteNomeAtual(),
           itens: itensResumo,
           valor: total,
           horario: formatTimePt(),
@@ -189,8 +231,8 @@ const ScreenClienteCarrinho = {
           data: formatDatePt(),
         };
         state.pedidos.unshift(novoPedido);
-        state.movimentosCaixa.unshift({ id: nextId(), horario: formatTimePt(), descricao: "Venda Pedido " + novoPedido.numero, tipo: "Entrada", valor: total, responsavel: CLIENTE_NOME_DEMO });
-        state.meusPedidosCliente.unshift({ id: novoPedido.id, data: novoPedido.data, desc: itensResumo, valor: total, status: "Recebido" });
+        state.movimentosCaixa.unshift({ id: nextId(), horario: formatTimePt(), descricao: "Venda Pedido " + novoPedido.numero, tipo: "Entrada", valor: total, responsavel: clienteNomeAtual() });
+        clienteRegistrarPedido(novoPedido);
         state.ultimoPedidoCliente = { numero: novoPedido.numero, valor: total, forma: "Pix", pedidoId: novoPedido.id };
         state.carrinho = [];
         navigate("/cliente/pedido-confirmado");
@@ -236,7 +278,7 @@ const ScreenClienteMeusPedidos = {
   bind: function () {
     const lista = qs("#pedidosLista");
     function renderLista(filtro) {
-      const pedidos = state.meusPedidosCliente.filter(function (p) {
+      const pedidos = clienteMeusPedidos().filter(function (p) {
         if (filtro === "Todos") return true;
         if (filtro === "Em andamento") return p.status !== "Concluído" && p.status !== "Cancelado";
         return p.status === "Concluído";
@@ -244,7 +286,7 @@ const ScreenClienteMeusPedidos = {
       lista.innerHTML = pedidos.map(function (p) {
         return '<div class="cart-item" data-href="/cliente/pedidos/' + p.id + '" style="cursor:pointer;"><div class="cart-item-info"><div class="name">' + escapeHtml(p.desc) + '</div><div class="meta">' + p.data + "</div></div>" +
           '<div class="cart-item-price"><div class="value">' + formatBRL(p.valor) + "</div>" + badgeHtml(p.status) + "</div></div>";
-      }).join("") || '<p style="text-align:center;color:var(--text-secondary);padding:24px 0;">Nenhum pedido encontrado.</p>';
+      }).join("") || semPedidosHtml("Nenhum pedido encontrado.");
     }
     qsa("#pedidosFiltro .chip").forEach(function (chip) {
       chip.addEventListener("click", function () {
@@ -259,7 +301,11 @@ const ScreenClienteMeusPedidos = {
 const ScreenClienteAcompanharPedido = {
   render: function (params) {
     const pedido = getPedido(params.id);
-    if (!pedido) { navigate("/cliente/pedidos", { replace: true }); return null; }
+    // conta real so acompanha os proprios pedidos
+    if (!pedido || (clienteContaReal() && !clientePedidoEhMeu(pedido.id))) {
+      navigate("/cliente/pedidos", { replace: true });
+      return null;
+    }
     const idxAtual = STATUS_ORDEM.indexOf(pedido.status);
     const etapas = STATUS_ORDEM.map(function (label, i) {
       return { label: label, done: i < idxAtual, active: i === idxAtual };
@@ -280,6 +326,31 @@ const ScreenClienteAcompanharPedido = {
   }
 };
 
+// numeros da carteira: exemplo fixo na demonstracao, calculados dos pedidos na conta real
+function clienteCarteira() {
+  if (!clienteContaReal()) {
+    return {
+      saldoDevedor: 56.00, totalGasto: 245.00, quantidadePedidos: 8, ultimoPedido: "12/09/2026",
+      historico: [
+        { data: "12/09/2026", compra: "X-Tudo + Refri", valor: 35.00, status: "Em aberto" },
+        { data: "10/09/2026", compra: "Marmita", valor: 28.00, status: "Pago" },
+        { data: "05/09/2026", compra: "X-Bacon", valor: 32.00, status: "Pago" },
+      ],
+    };
+  }
+  const pedidos = clienteMeusPedidos();
+  const validos = pedidos.filter(function (p) { return p.status !== "Cancelado"; });
+  return {
+    saldoDevedor: 0, // conta real paga no pedido (Pix); fiado ainda nao existe no banco
+    totalGasto: validos.reduce(function (s, p) { return s + p.valor; }, 0),
+    quantidadePedidos: validos.length,
+    ultimoPedido: pedidos.length ? pedidos[0].data : null,
+    historico: pedidos.map(function (p) {
+      return { data: p.data, compra: p.desc, valor: p.valor, status: p.status === "Cancelado" ? "Cancelado" : "Pago" };
+    }),
+  };
+}
+
 const ScreenClienteConta = {
   render: function () {
     const content =
@@ -291,27 +362,27 @@ const ScreenClienteConta = {
     return clienteShell("conta", "Minha carteira", null, content);
   },
   bind: function () {
-    const historico = [
-      { data: "12/09/2026", compra: "X-Tudo + Refri", valor: 35.00, status: "Em aberto" },
-      { data: "10/09/2026", compra: "Marmita", valor: 28.00, status: "Pago" },
-      { data: "05/09/2026", compra: "X-Bacon", valor: 32.00, status: "Pago" },
-    ];
+    const carteira = clienteCarteira();
     const body = qs("#contaBody");
+    function linhaResumo(rotulo, valor) {
+      return '<div class="list-row"><span style="font-size:.875rem;color:var(--text-secondary);">' + rotulo + '</span><span style="font-size:.875rem;font-weight:600;">' + valor + "</span></div>";
+    }
     function renderTab(tab) {
       if (tab === "resumo") {
+        const temDivida = carteira.saldoDevedor > 0;
         body.innerHTML =
-          '<div class="balance-card"><p class="label">Meu saldo devedor</p><p class="value">R$ 56,00</p>' +
-          '<p class="desc">Mantenha seus pagamentos em dia e continue aproveitando!</p>' +
-          '<button type="button" class="btn btn-white btn-sm" id="pagarAgoraBtn">Pagar agora</button></div>' +
+          '<div class="balance-card"><p class="label">Meu saldo devedor</p><p class="value">' + formatBRL(carteira.saldoDevedor) + "</p>" +
+          '<p class="desc">' + (temDivida ? "Mantenha seus pagamentos em dia e continue aproveitando!" : "Você não tem nenhum valor em aberto.") + "</p>" +
+          (temDivida ? '<button type="button" class="btn btn-white btn-sm" id="pagarAgoraBtn">Pagar agora</button>' : "") + "</div>" +
           '<div class="section-card" style="margin-top:16px;padding:16px;"><p style="font-weight:700;margin-bottom:8px;">Resumo rápido</p>' +
-          '<div class="list-row"><span style="font-size:.875rem;color:var(--text-secondary);">Total gasto</span><span style="font-size:.875rem;font-weight:600;">R$ 245,00</span></div>' +
-          '<div class="list-row"><span style="font-size:.875rem;color:var(--text-secondary);">Pedidos realizados</span><span style="font-size:.875rem;font-weight:600;">8</span></div>' +
-          '<div class="list-row"><span style="font-size:.875rem;color:var(--text-secondary);">Último pedido</span><span style="font-size:.875rem;font-weight:600;">12/09/2026</span></div>' +
+          linhaResumo("Total gasto", formatBRL(carteira.totalGasto)) +
+          linhaResumo("Pedidos realizados", String(carteira.quantidadePedidos)) +
+          linhaResumo("Último pedido", carteira.ultimoPedido || "—") +
           "</div>";
         const pagarBtn = qs("#pagarAgoraBtn");
         if (pagarBtn) pagarBtn.addEventListener("click", function () {
           openModal("Pagar saldo devedor",
-            '<div style="background:var(--blue-light);border-radius:10px;padding:14px;margin-bottom:16px;"><p style="font-size:.875rem;color:var(--text-secondary);">Valor a pagar</p><p style="font-size:1.375rem;font-weight:700;color:var(--blue-primary);">R$ 56,00</p></div>' +
+            '<div style="background:var(--blue-light);border-radius:10px;padding:14px;margin-bottom:16px;"><p style="font-size:.875rem;color:var(--text-secondary);">Valor a pagar</p><p style="font-size:1.375rem;font-weight:700;color:var(--blue-primary);">' + formatBRL(carteira.saldoDevedor) + "</p></div>" +
             ["Pix", "Dinheiro", "Cartão de crédito"].map(function (f) {
               return '<button type="button" class="btn btn-outline btn-block" data-toast="Funcionalidade disponível em breve." style="margin-bottom:10px;justify-content:flex-start;">' + f + "</button>";
             }).join(""),
@@ -319,10 +390,10 @@ const ScreenClienteConta = {
           );
         });
       } else {
-        body.innerHTML = '<div class="product-list">' + historico.map(function (h) {
+        body.innerHTML = '<div class="product-list">' + (carteira.historico.map(function (h) {
           return '<div class="cart-item"><div class="cart-item-info"><div class="name">' + escapeHtml(h.compra) + '</div><div class="meta">' + h.data + "</div></div>" +
             '<div class="cart-item-price"><div class="value">' + formatBRL(h.valor) + "</div>" + badgeHtml(h.status) + "</div></div>";
-        }).join("") + "</div>";
+        }).join("") || semPedidosHtml("Nenhuma compra registrada ainda.")) + "</div>";
       }
     }
     qsa("#contaTabs .chip").forEach(function (chip) {
@@ -343,8 +414,14 @@ const CLIENTE_PERFIL_OPCOES = [
 ];
 const ScreenClientePerfil = {
   render: function () {
+    const conta = clienteContaReal();
+    // a sessao guarda nome e e-mail devolvidos pelo servidor; o telefone ainda nao vem nela
+    const nome = clienteNomeAtual();
+    const metas = conta ? [conta.email] : ["(69) 99123-4567", "lucas@email.com"];
+    const inicial = String(nome).trim().charAt(0).toUpperCase() || "?";
     const content =
-      '<div class="profile-header-card"><div class="avatar">L</div><div><div class="name">' + CLIENTE_NOME_DEMO + '</div><div class="meta">(69) 99123-4567</div><div class="meta">lucas@email.com</div></div></div>' +
+      '<div class="profile-header-card"><div class="avatar">' + escapeHtml(inicial) + '</div><div><div class="name">' + escapeHtml(nome) + "</div>" +
+      metas.filter(Boolean).map(function (m) { return '<div class="meta">' + escapeHtml(m) + "</div>"; }).join("") + "</div></div>" +
       '<div class="section-card"><div class="option-list">' + CLIENTE_PERFIL_OPCOES.map(function (o) {
         return '<button type="button" class="option-row" style="width:100%;text-align:left;" data-toast="Funcionalidade disponível em breve."><span class="option-row-left">' + icon(o.icon) + '<span class="label">' + o.label + "</span></span><span class=\"chevron\">" + icon("chevronRight", "icon-sm") + "</span></button>";
       }).join("") + "</div></div>" +
