@@ -273,78 +273,7 @@ const ScreenGerenteFiado = {
   }
 };
 
-const ScreenGerenteEstoque = {
-  render: function () {
-    const baixos = state.produtos.filter(function (p) { return p.quantidade <= p.estoqueMinimo; }).length;
-    const content =
-      '<div class="screen-head-row"><h2 style="font-size:1.25rem;">Estoque</h2>' +
-      '<button type="button" class="btn btn-primary" id="geAddBtn">' + icon("plus", "icon-sm") + "Adicionar produto</button></div>" +
-      '<div class="stat-grid stat-grid-3">' +
-      '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Produtos cadastrados</span><span class="stat-card-icon">' + icon("box") + '</span></div><div class="stat-card-value">' + state.produtos.length + '</div><div class="stat-card-trend">no cardápio</div></div>' +
-      '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Estoque baixo</span><span class="stat-card-icon">' + icon("alertTriangle") + '</span></div><div class="stat-card-value">' + baixos + '</div><div class="stat-card-trend">abaixo do mínimo</div></div>' +
-      '<div class="stat-card"><div class="stat-card-head"><span class="stat-card-label">Valor estimado</span><span class="stat-card-icon">' + icon("cash") + '</span></div><div class="stat-card-value">R$ 2.340,00</div><div class="stat-card-trend">custo de estoque</div></div>' +
-      "</div>" +
-      '<div class="card"><div class="table-wrap"><table class="table"><thead><tr><th>Produto</th><th>Categoria</th><th>Quantidade</th><th>Estoque mínimo</th><th>Preço</th><th>Status</th><th>Ações</th></tr></thead><tbody id="geTbody"></tbody></table></div></div>';
-    return gerenteShell("estoque", "Estoque", null, content);
-  },
-  bind: function () {
-    function renderRows() {
-      qs("#geTbody").innerHTML = state.produtos.map(function (p) {
-        const info = estoqueStatusInfo(p);
-        return "<tr><td>" + escapeHtml(p.nome) + "</td><td>" + escapeHtml(p.categoria) + "</td><td style=\"font-weight:600;\">" + p.quantidade + "</td><td>" + p.estoqueMinimo + "</td><td>" + formatBRL(p.preco) + "</td><td>" + badgeHtml(info.label, info.cls) + '</td><td><button type="button" class="btn-link" data-edit-produto="' + p.id + '">Editar</button></td></tr>';
-      }).join("");
-      qsa("[data-edit-produto]").forEach(function (btn) {
-        btn.addEventListener("click", function () {
-          const produto = getProduto(btn.getAttribute("data-edit-produto"));
-          openModal("Editar " + produto.nome,
-            '<div class="field"><label for="geEditQtd">Quantidade atual</label><input type="number" id="geEditQtd" value="' + produto.quantidade + '" min="0"></div>' +
-            '<div class="field"><label for="geEditMin">Estoque mínimo</label><input type="number" id="geEditMin" value="' + produto.estoqueMinimo + '" min="0"></div>',
-            '<button type="button" class="btn btn-outline btn-block" data-modal-close>Cancelar</button><button type="button" class="btn btn-primary btn-block" id="geEditSalvar">Salvar</button>'
-          );
-          qs("#geEditSalvar").addEventListener("click", function () {
-            const novaQtd = Number(qs("#geEditQtd").value);
-const novoMin = Number(qs("#geEditMin").value);
-if (isNaN(novaQtd) || novaQtd < 0) { alert("Quantidade não pode ser negativa."); return; }
-if (isNaN(novoMin) || novoMin < 0) { alert("Estoque mínimo não pode ser negativo."); return; }
-produto.quantidade = novaQtd;
-produto.estoqueMinimo = novoMin;
-            closeModal();
-            render();
-          });
-        });
-      });
-    }
-    qs("#geAddBtn").addEventListener("click", function () {
-      openModal("Adicionar produto",
-        '<div class="field"><label for="geNomeNovo">Nome do produto</label><input type="text" id="geNomeNovo" placeholder="Ex: X-Burguer"></div>' +
-        '<div class="field"><label for="geCatNovo">Categoria</label><input type="text" id="geCatNovo" placeholder="Lanches, Bebidas..."></div>' +
-        '<div class="field"><label for="gePrecoNovo">Preço (R$)</label><input type="number" id="gePrecoNovo" placeholder="0,00" min="0" step="0.01"></div>' +
-        '<div class="field"><label for="geQtdNovo">Quantidade inicial</label><input type="number" id="geQtdNovo" placeholder="0" min="0"></div>' +
-        '<div class="field"><label for="geMinNovo">Estoque mínimo</label><input type="number" id="geMinNovo" placeholder="5" min="0"></div>',
-        '<button type="button" class="btn btn-outline btn-block" data-modal-close>Cancelar</button><button type="button" class="btn btn-primary btn-block" id="geAddSalvar">Adicionar</button>'
-      );
-      qs("#geAddSalvar").addEventListener("click", function () {
-        const nome = qs("#geNomeNovo").value.trim();
-if (!nome) { alert("Informe o nome do produto."); return; }
-const preco = parseFloat(qs("#gePrecoNovo").value || "0");
-if (isNaN(preco) || preco <= 0) { alert("Preço deve ser maior que zero."); return; }
-const qtd = Number(qs("#geQtdNovo").value) || 0;
-if (isNaN(qtd) || qtd < 0) { alert("Quantidade não pode ser negativa."); return; }
-const min = Number(qs("#geMinNovo").value) || 0;
-if (isNaN(min) || min < 0) { alert("Estoque mínimo não pode ser negativo."); return; }
-state.produtos.push({
-id: nextId(), nome: nome, descricao: "", preco: preco,
-categoria: qs("#geCatNovo").value.trim() || "Outros",
-imagem: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=400&h=300&fit=crop&auto=format",
-disponivel: true, quantidade: qtd, estoqueMinimo: min,
-});
-        closeModal();
-        render();
-      });
-    });
-    renderRows();
-  }
-};
+// ScreenGerenteEstoque fica em screens/estoque.js (tela ligada a API, igual para Gerente e Funcionario)
 
 const ScreenGerenteCaixa = {
   render: function () {
