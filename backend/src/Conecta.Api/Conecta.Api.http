@@ -2,3 +2,128 @@
 
 GET {{host}}/saude
 Accept: application/json
+
+###
+# 1. Entrar como Gerente ou Funcionario e copiar o "token" da resposta para @token
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "gerente@exemplo.com",
+  "senha": "SuaSenha123"
+}
+
+###
+@token = COLE_O_TOKEN_AQUI
+
+### Estoque: cadastrar item (RF22)
+POST {{host}}/api/estoque
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Farinha de trigo",
+  "quantidadeAtual": 20,
+  "unidadeMedida": "kg",
+  "categoria": "Insumos",
+  "quantidadeMinima": 5
+}
+
+### Estoque: cadastro invalido (espera 400 com erro em cada campo)
+POST {{host}}/api/estoque
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "",
+  "quantidadeAtual": -1,
+  "unidadeMedida": "tonelada",
+  "quantidadeMinima": -3
+}
+
+### Estoque: listar todos
+GET {{host}}/api/estoque
+Authorization: Bearer {{token}}
+
+### Estoque: filtrar por nome, categoria e status (RF30)
+GET {{host}}/api/estoque?nome=farinha&categoria=Insumos&status=normal
+Authorization: Bearer {{token}}
+
+### Estoque: so os itens com estoque baixo
+GET {{host}}/api/estoque?status=baixo
+Authorization: Bearer {{token}}
+
+### Estoque: buscar um item pelo id (404 se nao existir ou for de outro negocio)
+GET {{host}}/api/estoque/1
+Authorization: Bearer {{token}}
+
+### Estoque: editar item (RF23). Envie o item inteiro; a quantidade atual nao muda por aqui
+PUT {{host}}/api/estoque/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Farinha de trigo integral",
+  "unidadeMedida": "kg",
+  "categoria": "Insumos",
+  "quantidadeMinima": 8
+}
+
+### Estoque: excluir item (RF23). So Gerente: Funcionario recebe 403
+DELETE {{host}}/api/estoque/1
+Authorization: Bearer {{token}}
+
+### Estoque: entrada de quantidade (RF24). Motivo opcional
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "entrada",
+  "quantidade": 10,
+  "motivo": "Compra do fornecedor"
+}
+
+### Estoque: saida de quantidade (RF27). Motivo obrigatorio (perda, descarte ou ajuste)
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "saida",
+  "quantidade": 3,
+  "motivo": "Descarte: embalagem rasgada"
+}
+
+### Estoque: saida sem motivo (espera 400 no campo motivo)
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "saida",
+  "quantidade": 3
+}
+
+### Estoque: saida maior que o disponivel (espera 409 com a quantidade disponivel)
+POST {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "tipo": "saida",
+  "quantidade": 999999,
+  "motivo": "Ajuste"
+}
+
+### Estoque: historico de movimentacoes do item (RF29). Mais recente primeiro
+GET {{host}}/api/estoque/1/movimentacoes
+Authorization: Bearer {{token}}
+
+### Estoque: historico de item que nao existe (espera 404)
+GET {{host}}/api/estoque/99999/movimentacoes
+Authorization: Bearer {{token}}
+
+### Estoque: status invalido no filtro (espera 400 no campo status)
+GET {{host}}/api/estoque?status=critico
+Authorization: Bearer {{token}}

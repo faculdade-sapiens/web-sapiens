@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.RegularExpressions;
+using Conecta.Api.Dominio.Entidades;
 
 namespace Conecta.Api.Dominio.Validacao;
 
@@ -101,6 +102,82 @@ public static partial class Regras
         var slug = ForaDoSlug().Replace(semAcento, "-").Trim('-');
         if (slug.Length > 50) slug = slug[..50].Trim('-');
         return slug.Length == 0 ? "negocio" : slug;
+    }
+
+    // ===== Estoque (RF22, RF24, RF27, RN04) =====
+    // Tamanhos iguais aos do docs/schema.sql (item_estoque e movimentacao_estoque).
+
+    public const int NomeItemMaximo = 120;
+    public const int CategoriaEstoqueMaximo = 60;
+    public const int MotivoMaximo = 255;
+    public const int QuantidadeMaxima = 1_000_000; // evita valor absurdo digitado por engano
+    private const string QuantidadeMaximaTexto = "1.000.000"; // fixo: no servidor (Railway) o idioma nao e pt-BR
+
+    // RF22: "ex: unidade, kg, litro". Lista fechada para os relatorios ficarem consistentes.
+    public static readonly string[] UnidadesMedida = ["unidade", "kg", "g", "litro", "ml", "caixa", "pacote", "dúzia"];
+
+    public static string? ValidarNomeItem(string nome) =>
+        ValidarNome(nome, "o nome do item", NomeItemMaximo);
+
+    // Vazio vira "unidade" (mesmo default do banco). Devolve null quando a unidade nao esta na lista.
+    public static string? NormalizarUnidade(string? unidade, out string? erro)
+    {
+        erro = null;
+        var valor = LimparTexto(unidade).ToLowerInvariant();
+        if (valor.Length == 0) return "unidade";
+
+        var encontrada = UnidadesMedida.FirstOrDefault(u => u == valor);
+        if (encontrada is null) erro = $"Escolha uma unidade da lista: {string.Join(", ", UnidadesMedida)}.";
+        return encontrada;
+    }
+
+    // Categoria e opcional. Ja deve chegar limpa por LimparTexto.
+    public static string? ValidarCategoriaEstoque(string categoria) =>
+        categoria.Length == 0 ? null : ValidarNome(categoria, "a categoria", CategoriaEstoqueMaximo);
+
+    public static string? ValidarQuantidadeAtual(int quantidade)
+    {
+        if (quantidade < 0) return "A quantidade não pode ser negativa.";
+        if (quantidade > QuantidadeMaxima) return $"A quantidade pode ser no máximo {QuantidadeMaximaTexto}.";
+        return null;
+    }
+
+    // RN04: a quantidade minima de alerta nao pode ser negativa.
+    public static string? ValidarQuantidadeMinima(int quantidade)
+    {
+        if (quantidade < 0) return "A quantidade mínima não pode ser negativa.";
+        if (quantidade > QuantidadeMaxima) return $"A quantidade mínima pode ser no máximo {QuantidadeMaximaTexto}.";
+        return null;
+    }
+
+    // Entrada (RF24) e saida (RF27) movimentam sempre mais que zero.
+    public static string? ValidarQuantidadeMovimentacao(int quantidade)
+    {
+        if (quantidade <= 0) return "A quantidade precisa ser maior que zero.";
+        if (quantidade > QuantidadeMaxima) return $"A quantidade pode ser no máximo {QuantidadeMaximaTexto}.";
+        return null;
+    }
+
+    // Aceita "entrada"/"saida"/"saída" em qualquer caixa e devolve o valor gravado no banco.
+    public static string? NormalizarTipoMovimentacao(string? tipo, out string? erro)
+    {
+        erro = null;
+        var valor = LimparTexto(tipo).ToUpperInvariant().Replace('Í', 'I');
+        if (valor is TiposMovimentacao.Entrada or TiposMovimentacao.Saida) return valor;
+        erro = "Escolha entrada ou saída.";
+        return null;
+    }
+
+    // RF27: saida exige motivo (perda, descarte, ajuste). Na entrada o motivo e opcional.
+    // O motivo ja deve chegar limpo por LimparTexto.
+    public static string? ValidarMotivo(string tipo, string motivo)
+    {
+        if (motivo.Length == 0)
+            return tipo == TiposMovimentacao.Saida ? "Informe o motivo da saída (perda, descarte ou ajuste)." : null;
+        if (motivo.Length > MotivoMaximo) return $"O motivo pode ter no máximo {MotivoMaximo} caracteres.";
+        if (motivo.Any(char.IsControl) || motivo.IndexOfAny(['<', '>']) >= 0)
+            return "O motivo tem caracteres que não são permitidos.";
+        return null;
     }
 
     private static string Primeira(string texto) => char.ToUpperInvariant(texto[0]) + texto[1..];
