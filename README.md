@@ -29,7 +29,7 @@ Concorrentes grandes entregam ecossistemas completos mas complexos e caros, com 
 - **Simplicidade extrema**: Interface pensada para quem utiliza caderno e WhatsApp
 - **Custo Acessível**: Sem taxas abusivas por pedido ou mensalidades absurdas
 - **Módulos integrados e diretos**: Marketplace leve (cardápio digital), estoque inteligente (alerta automático de baixa quantidade), Agenda/ Pedidos (substitui o caderno)
-- **Proximidade real**: Nasce de uma dor validade com microempresários reais, não de um suporte genérico
+- **Proximidade real**: Nasce de uma dor validada com microempresários reais, não de um suporte genérico
 
 ### Cores
 - Primária: Azul    #2563EB
