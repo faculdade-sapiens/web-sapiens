@@ -2,3 +2,57 @@
 
 GET {{host}}/saude
 Accept: application/json
+
+###
+# 1. Entrar como Gerente ou Funcionario e copiar o "token" da resposta para @token
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "gerente@exemplo.com",
+  "senha": "SuaSenha123"
+}
+
+###
+@token = COLE_O_TOKEN_AQUI
+
+### Estoque: cadastrar item (RF22)
+POST {{host}}/api/estoque
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "Farinha de trigo",
+  "quantidadeAtual": 20,
+  "unidadeMedida": "kg",
+  "categoria": "Insumos",
+  "quantidadeMinima": 5
+}
+
+### Estoque: cadastro invalido (espera 400 com erro em cada campo)
+POST {{host}}/api/estoque
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nome": "",
+  "quantidadeAtual": -1,
+  "unidadeMedida": "tonelada",
+  "quantidadeMinima": -3
+}
+
+### Estoque: listar todos
+GET {{host}}/api/estoque
+Authorization: Bearer {{token}}
+
+### Estoque: filtrar por nome, categoria e status (RF30)
+GET {{host}}/api/estoque?nome=farinha&categoria=Insumos&status=normal
+Authorization: Bearer {{token}}
+
+### Estoque: so os itens com estoque baixo
+GET {{host}}/api/estoque?status=baixo
+Authorization: Bearer {{token}}
+
+### Estoque: buscar um item pelo id (404 se nao existir ou for de outro negocio)
+GET {{host}}/api/estoque/1
+Authorization: Bearer {{token}}

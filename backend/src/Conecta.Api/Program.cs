@@ -207,5 +207,6 @@ app.Use(async (http, next) =>
 
 app.MapSaudeEndpoints();
 app.MapAuthEndpoints();
+app.MapEstoqueEndpoints();
 
 app.Run();
