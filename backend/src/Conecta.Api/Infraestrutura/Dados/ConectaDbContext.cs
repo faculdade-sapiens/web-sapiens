@@ -12,6 +12,8 @@ public sealed class ConectaDbContext(DbContextOptions<ConectaDbContext> options)
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<ConfigAgenda> ConfigsAgenda => Set<ConfigAgenda>();
     public DbSet<Cliente> Clientes => Set<Cliente>();
+    public DbSet<ItemEstoque> ItensEstoque => Set<ItemEstoque>();
+    public DbSet<MovimentacaoEstoque> MovimentacoesEstoque => Set<MovimentacaoEstoque>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
@@ -37,6 +39,24 @@ public sealed class ConectaDbContext(DbContextOptions<ConectaDbContext> options)
             e.HasKey(c => c.NegocioId);
             e.Property(c => c.NegocioId).ValueGeneratedNever();
             e.HasOne(c => c.Negocio).WithOne().HasForeignKey<ConfigAgenda>(c => c.NegocioId);
+        });
+
+        modelBuilder.Entity<ItemEstoque>(e =>
+        {
+            e.ToTable("item_estoque");
+            e.Property(i => i.Nome).HasMaxLength(120);
+            e.Property(i => i.UnidadeMedida).HasMaxLength(20);
+            e.Property(i => i.Categoria).HasMaxLength(60);
+            e.HasOne(i => i.Negocio).WithMany().HasForeignKey(i => i.NegocioId);
+        });
+
+        modelBuilder.Entity<MovimentacaoEstoque>(e =>
+        {
+            e.ToTable("movimentacao_estoque");
+            e.Property(m => m.Tipo).HasMaxLength(10);
+            e.Property(m => m.Motivo).HasMaxLength(255);
+            e.HasOne(m => m.ItemEstoque).WithMany(i => i.Movimentacoes).HasForeignKey(m => m.ItemEstoqueId);
+            e.HasOne(m => m.Usuario).WithMany().HasForeignKey(m => m.UsuarioId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 
