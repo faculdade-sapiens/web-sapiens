@@ -2,4 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/Conecta.Api/Conecta.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Conecta.Api.Testes/Conecta.Api.Testes.csproj" />
+  </Folder>
 </Solution>
